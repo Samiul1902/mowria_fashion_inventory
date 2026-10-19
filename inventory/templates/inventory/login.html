@@ -76,49 +76,6 @@
             </button>
         </form>
 
-        <!-- Quick 1-Click Role Login Helper -->
-        <div class="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2.5">
-            <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider text-center">Quick 1-Click Role Access</div>
-            
-            <div class="grid grid-cols-1 gap-1.5">
-                <!-- 1. Super Admin -->
-                <button type="button" @click="setQuickAccount('superadmin@mowriafashion.com', 'password')"
-                        class="w-full p-2.5 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/20 hover:bg-rose-100/60 transition text-left flex items-center justify-between">
-                    <div>
-                        <div class="text-xs font-bold text-rose-700 dark:text-rose-400 flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-rose-500"></span> 1. Super Admin (Full Control)
-                        </div>
-                        <div class="text-[10px] text-slate-400 mt-0.5">superadmin@mowriafashion.com</div>
-                    </div>
-                    <span class="text-[10px] bg-rose-200 dark:bg-rose-900 text-rose-800 dark:text-rose-300 px-2 py-0.5 rounded font-mono font-semibold">Select</span>
-                </button>
-
-                <!-- 2. Employee -->
-                <button type="button" @click="setQuickAccount('salesrep@mowriafashion.com', 'password')"
-                        class="w-full p-2.5 rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/50 dark:bg-amber-950/20 hover:bg-amber-100/60 transition text-left flex items-center justify-between">
-                    <div>
-                        <div class="text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-amber-500"></span> 2. Employee (Edit Stock Only)
-                        </div>
-                        <div class="text-[10px] text-slate-400 mt-0.5">salesrep@mowriafashion.com</div>
-                    </div>
-                    <span class="text-[10px] bg-amber-200 dark:bg-amber-900 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded font-mono font-semibold">Select</span>
-                </button>
-
-                <!-- 3. Viewer -->
-                <button type="button" @click="setQuickAccount('view@mowriafashion.com', 'password')"
-                        class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 transition text-left flex items-center justify-between">
-                    <div>
-                        <div class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-slate-400"></span> 3. Viewer (Read-Only)
-                        </div>
-                        <div class="text-[10px] text-slate-400 mt-0.5">view@mowriafashion.com</div>
-                    </div>
-                    <span class="text-[10px] bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded font-mono font-semibold">Select</span>
-                </button>
-            </div>
-        </div>
-
     </div>
 </body>
 </html>
