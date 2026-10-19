@@ -1,11 +1,88 @@
 import json
 from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.views.decorators.http import require_POST
-from django.db.models import Sum, F, DecimalField, ExpressionWrapper, Q
-from .models import Product, StockMovement
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib import messages
+from django.db.models import Sum, Q
+from .models import Product, StockMovement, UserProfile, ActivityLog
 from .forms import ProductForm
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        return x_forwarded_for.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR')
+
+def get_user_role_context(request):
+    """
+    Returns user role and permission flags:
+    1. Super Admin: Full system control (Add/Edit/Delete products, Adjust stock, View everything)
+    2. Employee: Can only adjust size stock (+ / -), cannot create/edit/delete products
+    3. Viewer: Read-only access to catalog, stock levels, valuations, and availability.
+    """
+    if not request.user.is_authenticated:
+        # Unauthenticated guest behaves as Viewer
+        return {
+            'role': 'VIEWER',
+            'role_label': 'Viewer (Guest)',
+            'can_manage_products': False,
+            'can_adjust_stock': False,
+            'is_super_admin': False,
+            'is_employee': False,
+            'is_viewer': True,
+        }
+
+    user = request.user
+    if user.is_superuser:
+        return {
+            'role': 'SUPER_ADMIN',
+            'role_label': 'Super Admin',
+            'can_manage_products': True,
+            'can_adjust_stock': True,
+            'is_super_admin': True,
+            'is_employee': False,
+            'is_viewer': False,
+        }
+
+    # Fetch or create UserProfile
+    profile, _ = UserProfile.objects.get_or_create(user=user, defaults={'role': UserProfile.ROLE_VIEWER})
+    role = profile.role
+
+    is_super_admin = (role == UserProfile.ROLE_SUPER_ADMIN)
+    is_employee = (role == UserProfile.ROLE_EMPLOYEE)
+    is_viewer = (role == UserProfile.ROLE_VIEWER)
+
+    return {
+        'role': role,
+        'role_label': profile.get_role_display(),
+        'can_manage_products': is_super_admin,
+        'can_adjust_stock': is_super_admin or is_employee,
+        'is_super_admin': is_super_admin,
+        'is_employee': is_employee,
+        'is_viewer': is_viewer,
+    }
+
+def log_activity(request, action, product=None, details=''):
+    user = request.user if request.user.is_authenticated else None
+    role_ctx = get_user_role_context(request)
+    role_name = role_ctx['role_label']
+    
+    code = product.code if product else ''
+    name = product.name if product else ''
+
+    ActivityLog.objects.create(
+        user=user,
+        user_role=role_name,
+        action=action,
+        product_code=code,
+        product_name=name,
+        details=details,
+        ip_address=get_client_ip(request)
+    )
+
 
 def dashboard(request):
     query = request.GET.get('q', '').strip()
@@ -27,7 +104,6 @@ def dashboard(request):
     if category:
         products_qs = products_qs.filter(category=category)
 
-    # Convert to list to support property-based filtering/sorting & dynamic annotations
     product_list = list(products_qs)
 
     if status:
@@ -51,10 +127,10 @@ def dashboard(request):
         product_list.sort(key=lambda p: p.sold_quantity, reverse=True)
     elif sort == 'name_asc':
         product_list.sort(key=lambda p: p.name.lower())
-    else:  # default newest
+    else:
         product_list.sort(key=lambda p: p.created_at, reverse=True)
 
-    # High-level KPIs across all products in inventory
+    # High-level KPIs across all inventory
     all_products = Product.objects.all().prefetch_related('movements')
     total_active_skus = all_products.count()
     total_in_stock_units = sum(p.total_quantity for p in all_products)
@@ -64,12 +140,11 @@ def dashboard(request):
     low_stock_count = sum(1 for p in all_products if p.stock_status == 'Low Stock')
     out_of_stock_count = sum(1 for p in all_products if p.stock_status == 'Out of Stock')
 
-    # Total units sold across all products
     total_units_sold = StockMovement.objects.filter(movement_type='SALE').aggregate(
         total=Sum('quantity')
     )['total'] or 0
 
-    # Category counts for filter pills
+    # Category counts
     category_choices = [c[0] for c in Product.CATEGORY_CHOICES]
     category_counts = []
     for cat in category_choices:
@@ -80,6 +155,8 @@ def dashboard(request):
         })
 
     product_form = ProductForm()
+    user_perm = get_user_role_context(request)
+    recent_activities = ActivityLog.objects.all()[:25]
 
     context = {
         'products': product_list,
@@ -99,45 +176,83 @@ def dashboard(request):
         'selected_sort': sort,
         'query': query,
         'product_form': product_form,
+        'user_perm': user_perm,
+        'recent_activities': recent_activities,
     }
     return render(request, 'inventory/dashboard.html', context)
 
 
 @require_POST
 def product_create(request):
+    user_perm = get_user_role_context(request)
+    if not user_perm['can_manage_products']:
+        return HttpResponseForbidden("Access Denied: Only Super Admin can create new apparel products.")
+
     form = ProductForm(request.POST, request.FILES)
     if form.is_valid():
-        form.save()
+        product = form.save()
+        log_activity(
+            request, 
+            'PRODUCT_CREATED', 
+            product=product, 
+            details=f"Created product '{product.name}' with initial stock of {product.total_quantity} units (Cost: ৳{product.unit_cost}, Price: ৳{product.price})"
+        )
     return redirect('dashboard')
 
 
 @require_POST
 def product_update(request, pk):
+    user_perm = get_user_role_context(request)
+    if not user_perm['can_manage_products']:
+        return HttpResponseForbidden("Access Denied: Only Super Admin can modify product details.")
+
     product = get_object_or_404(Product, pk=pk)
     form = ProductForm(request.POST, request.FILES, instance=product)
     if form.is_valid():
-        form.save()
+        product = form.save()
+        log_activity(
+            request, 
+            'PRODUCT_UPDATED', 
+            product=product, 
+            details=f"Updated product specs: '{product.name}' (Category: {product.category}, Price: ৳{product.price}, Cost: ৳{product.unit_cost})"
+        )
     return redirect('dashboard')
 
 
 @require_POST
 def product_delete(request, pk):
+    user_perm = get_user_role_context(request)
+    if not user_perm['can_manage_products']:
+        return HttpResponseForbidden("Access Denied: Only Super Admin can delete products.")
+
     product = get_object_or_404(Product, pk=pk)
-    # If photo exists locally, could optionally clean up or let storage handle
+    code = product.code
+    name = product.name
     if product.photo:
         try:
             product.photo.delete(save=False)
         except Exception:
             pass
     product.delete()
+    log_activity(
+        request, 
+        'PRODUCT_DELETED', 
+        details=f"Permanently deleted SKU {code} - {name}"
+    )
     return redirect('dashboard')
 
 
 @require_POST
 def adjust_size_stock(request, pk):
+    user_perm = get_user_role_context(request)
+    if not user_perm['can_adjust_stock']:
+        return JsonResponse({
+            'success': False, 
+            'error': 'Access Denied: Viewer accounts cannot edit stock. Please switch to Employee or Super Admin.'
+        }, status=403)
+
     product = get_object_or_404(Product, pk=pk)
     
-    # Check if JSON payload or Form data
     size = None
     delta = 0
     if request.content_type == 'application/json':
@@ -168,12 +283,10 @@ def adjust_size_stock(request, pk):
             'error': 'Stock count cannot be negative.'
         }, status=400)
 
-    # Set new value
     setattr(product, field_name, new_val)
     product.save(update_fields=[field_name, 'updated_at'])
 
-    # Record stock movement
-    # If delta > 0: RESTOCK; if delta < 0: SALE
+    # Record Movement & Activity Log
     if delta > 0:
         StockMovement.objects.create(
             product=product,
@@ -183,6 +296,12 @@ def adjust_size_stock(request, pk):
             unit_price=product.unit_cost,
             notes='Quick adjustment (+1 Restock)'
         )
+        log_activity(
+            request, 
+            'STOCK_RESTOCKED', 
+            product=product, 
+            details=f"Restocked +{delta} unit(s) of size {size.upper()}. New size stock: {new_val}"
+        )
     elif delta < 0:
         StockMovement.objects.create(
             product=product,
@@ -191,6 +310,12 @@ def adjust_size_stock(request, pk):
             quantity=abs(delta),
             unit_price=product.price,
             notes='Quick adjustment (-1 Sale)'
+        )
+        log_activity(
+            request, 
+            'STOCK_SOLD', 
+            product=product, 
+            details=f"Recorded sale of {abs(delta)} unit(s) of size {size.upper()} at ৳{product.price}. Remaining: {new_val}"
         )
 
     return JsonResponse({
@@ -206,3 +331,45 @@ def adjust_size_stock(request, pk):
         'sold_quantity': product.sold_quantity,
         'profit_margin': round(product.profit_margin, 1)
     })
+
+
+def activity_log_view(request):
+    """Full-page Activity Log audit trail"""
+    logs = ActivityLog.objects.all()[:150]
+    user_perm = get_user_role_context(request)
+    return render(request, 'inventory/activity_log.html', {
+        'logs': logs,
+        'user_perm': user_perm
+    })
+
+
+def quick_switch_demo_role(request):
+    """
+    Convenient testing helper to seamlessly switch between the 3 roles:
+    1. Super Admin (Full access)
+    2. Employee (Edit stock only)
+    3. Viewer (Read-only)
+    """
+    target_role = request.GET.get('role', 'SUPER_ADMIN').upper()
+    role_map = {
+        'SUPER_ADMIN': ('demo_admin', UserProfile.ROLE_SUPER_ADMIN, True),
+        'EMPLOYEE': ('demo_employee', UserProfile.ROLE_EMPLOYEE, False),
+        'VIEWER': ('demo_viewer', UserProfile.ROLE_VIEWER, False),
+    }
+
+    if target_role not in role_map:
+        return redirect('dashboard')
+
+    username, role_const, is_super = role_map[target_role]
+    user, created = User.objects.get_or_create(username=username, defaults={'email': f"{username}@mowriafashion.com"})
+    user.is_superuser = is_super
+    user.is_staff = is_super
+    user.save()
+
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    profile.role = role_const
+    profile.save()
+
+    login(request, user)
+    log_activity(request, 'USER_LOGIN', details=f"Switched session role to {profile.get_role_display()}")
+    return redirect('dashboard')

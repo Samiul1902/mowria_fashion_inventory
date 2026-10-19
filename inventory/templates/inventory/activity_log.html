@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" :class="{ 'dark': darkMode }">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Activity & Audit Log - Mowria Fashion (MFB)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+        html { transition: background-color 0.2s ease, color 0.2s ease; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen font-sans antialiased"
+      x-data="{ 
+          darkMode: localStorage.getItem('theme') !== 'light',
+          toggleTheme() {
+              this.darkMode = !this.darkMode;
+              if (this.darkMode) {
+                  document.documentElement.classList.add('dark');
+                  localStorage.setItem('theme', 'dark');
+              } else {
+                  document.documentElement.classList.remove('dark');
+                  localStorage.setItem('theme', 'light');
+              }
+              this.$nextTick(() => lucide.createIcons());
+          }
+      }">
+
+    <!-- Top Header -->
+    <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'dashboard' %}" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition" title="Back to Dashboard">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </a>
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                        <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">System Activity & Audit Log</h1>
+                        <p class="text-xs text-slate-400">Live timeline of all inventory movements and administrative changes</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <!-- Theme Toggle -->
+                <button @click="toggleTheme()" 
+                        class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition"
+                        title="Toggle Light/Dark Theme">
+                    <template x-if="darkMode">
+                        <i data-lucide="sun" class="w-4 h-4 text-amber-400"></i>
+                    </template>
+                    <template x-if="!darkMode">
+                        <i data-lucide="moon" class="w-4 h-4 text-blue-600"></i>
+                    </template>
+                </button>
+
+                <a href="{% url 'dashboard' %}" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md shadow-blue-500/20 transition flex items-center gap-1.5">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        
+        <!-- Summary Banner -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                    <i data-lucide="shield-check" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <div class="text-sm font-bold text-slate-900 dark:text-white">Active Session Role: <span class="text-blue-600 dark:text-blue-400 font-mono">{{ user_perm.role_label }}</span></div>
+                    <div class="text-xs text-slate-400 mt-0.5">Every stock adjustment, SKU addition, price edit, or deletion is recorded with timestamp and actor IP.</div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Switch Role:</span>
+                <a href="{% url 'switch_role' %}?role=SUPER_ADMIN" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 hover:bg-rose-100 transition">Super Admin</a>
+                <a href="{% url 'switch_role' %}?role=EMPLOYEE" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 hover:bg-amber-100 transition">Employee</a>
+                <a href="{% url 'switch_role' %}?role=VIEWER" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200 transition">Viewer</a>
+            </div>
+        </div>
+
+        <!-- Logs Table -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-700 dark:text-slate-300">
+                    <thead class="bg-slate-100/80 dark:bg-slate-950/80 text-xs uppercase font-semibold text-slate-500 dark:text-slate-400 tracking-wider border-b border-slate-200 dark:border-slate-800">
+                        <tr>
+                            <th class="px-5 py-3.5 whitespace-nowrap">Timestamp</th>
+                            <th class="px-5 py-3.5 whitespace-nowrap">User & Role</th>
+                            <th class="px-5 py-3.5 whitespace-nowrap">Action Type</th>
+                            <th class="px-5 py-3.5 whitespace-nowrap">SKU / Item</th>
+                            <th class="px-5 py-3.5">Activity Details</th>
+                            <th class="px-5 py-3.5 whitespace-nowrap text-right">IP Address</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-sans">
+                        {% for log in logs %}
+                        <tr class="hover:bg-blue-50/40 dark:hover:bg-slate-800/40 transition">
+                            <td class="px-5 py-3.5 whitespace-nowrap text-xs text-slate-400 font-mono">
+                                {{ log.timestamp|date:"M d, Y H:i:s" }}
+                            </td>
+                            <td class="px-5 py-3.5 whitespace-nowrap">
+                                <div class="font-bold text-slate-900 dark:text-white text-xs">
+                                    {{ log.user.username|default:"Anonymous" }}
+                                </div>
+                                <div class="text-[10px] text-slate-400">{{ log.user_role|default:"Viewer" }}</div>
+                            </td>
+                            <td class="px-5 py-3.5 whitespace-nowrap">
+                                {% if 'CREATED' in log.action %}
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 border border-blue-200 dark:border-blue-700/50">
+                                        {{ log.get_action_display }}
+                                    </span>
+                                {% elif 'RESTOCKED' in log.action %}
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700/50">
+                                        {{ log.get_action_display }}
+                                    </span>
+                                {% elif 'SOLD' in log.action %}
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-700/50">
+                                        {{ log.get_action_display }}
+                                    </span>
+                                {% elif 'DELETED' in log.action %}
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 border border-rose-200 dark:border-rose-700/50">
+                                        {{ log.get_action_display }}
+                                    </span>
+                                {% else %}
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                        {{ log.get_action_display }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-5 py-3.5 whitespace-nowrap">
+                                {% if log.product_code %}
+                                    <span class="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">{{ log.product_code }}</span>
+                                    {% if log.product_name %}
+                                        <div class="text-[11px] text-slate-500 max-w-[150px] truncate">{{ log.product_name }}</div>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-xs text-slate-400">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-5 py-3.5 text-xs text-slate-700 dark:text-slate-300 max-w-md">
+                                {{ log.details }}
+                            </td>
+                            <td class="px-5 py-3.5 whitespace-nowrap text-right font-mono text-[11px] text-slate-400">
+                                {{ log.ip_address|default:"127.0.0.1" }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-5 py-12 text-center text-slate-400">
+                                No activity recorded yet. As stock is adjusted or products are modified, entries will appear here in real-time.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('theme') !== 'light') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

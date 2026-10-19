@@ -32,21 +32,12 @@
     </script>
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- HTMX CDN -->
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <!-- Alpine.js CDN -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         [x-cloak] { display: none !important; }
-        /* Smooth theme transition */
-        html {
-            transition: background-color 0.25s ease, color 0.25s ease;
-        }
-        /* Touch optimization for mobile buttons */
-        button, a, input, select {
-            touch-action: manipulation;
-        }
-        /* Custom scrollbar */
+        html { transition: background-color 0.25s ease, color 0.25s ease; }
+        button, a, input, select { touch-action: manipulation; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 4px; }
@@ -74,31 +65,82 @@
                 </div>
             </div>
 
-            <!-- Currency Tag (Desktop) -->
-            <div class="hidden lg:flex items-center space-x-2 bg-blue-50/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700/60 rounded-full px-3 py-1">
-                <span class="w-2 h-2 rounded-full bg-blue-500 dark:bg-blue-400 animate-pulse"></span>
-                <span class="text-xs text-slate-600 dark:text-slate-300 font-medium">Currency: <strong class="text-blue-600 dark:text-blue-400">BDT (৳)</strong></span>
+            <!-- Header Center: Role Badge & Quick Switcher -->
+            <div class="flex items-center space-x-2">
+                <!-- Role Badge Dropdown -->
+                <div class="relative" x-data="{ openRoleMenu: false }">
+                    <button @click="openRoleMenu = !openRoleMenu"
+                            class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition shadow-xs {% if user_perm.is_super_admin %}bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800/60{% elif user_perm.is_employee %}bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800/60{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700{% endif %}">
+                        <span class="w-2 h-2 rounded-full {% if user_perm.is_super_admin %}bg-rose-500 animate-pulse{% elif user_perm.is_employee %}bg-amber-500{% else %}bg-slate-400{% endif %}"></span>
+                        <span class="font-mono">{{ user_perm.role_label }}</span>
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+                    </button>
+
+                    <!-- Dropdown for fast testing of 3 roles -->
+                    <div x-show="openRoleMenu" @click.away="openRoleMenu = false" x-cloak
+                         class="absolute right-0 sm:left-0 mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-2 z-50 text-xs space-y-1">
+                        <div class="px-2.5 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Switch Active Role</div>
+                        
+                        <!-- Role 1: Super Admin -->
+                        <a href="{% url 'switch_role' %}?role=SUPER_ADMIN" 
+                           class="flex items-start space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/80 transition {% if user_perm.is_super_admin %}bg-blue-50/50 dark:bg-slate-800{% endif %}">
+                            <span class="w-2 h-2 rounded-full bg-rose-500 mt-1"></span>
+                            <div>
+                                <div class="font-bold text-slate-900 dark:text-white">1. Super Admin</div>
+                                <div class="text-[11px] text-slate-500 dark:text-slate-400">Can edit full system (Add/Edit/Delete + Stock)</div>
+                            </div>
+                        </a>
+
+                        <!-- Role 2: Employee -->
+                        <a href="{% url 'switch_role' %}?role=EMPLOYEE" 
+                           class="flex items-start space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/80 transition {% if user_perm.is_employee %}bg-blue-50/50 dark:bg-slate-800{% endif %}">
+                            <span class="w-2 h-2 rounded-full bg-amber-500 mt-1"></span>
+                            <div>
+                                <div class="font-bold text-slate-900 dark:text-white">2. Employee</div>
+                                <div class="text-[11px] text-slate-500 dark:text-slate-400">Only can edit the stock (+ / - steppers)</div>
+                            </div>
+                        </a>
+
+                        <!-- Role 3: Viewer -->
+                        <a href="{% url 'switch_role' %}?role=VIEWER" 
+                           class="flex items-start space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/80 transition {% if user_perm.is_viewer %}bg-blue-50/50 dark:bg-slate-800{% endif %}">
+                            <span class="w-2 h-2 rounded-full bg-slate-400 mt-1"></span>
+                            <div>
+                                <div class="font-bold text-slate-900 dark:text-white">3. Viewer</div>
+                                <div class="text-[11px] text-slate-500 dark:text-slate-400">Read-only view of products & availabilities</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Activity Log Link Button -->
+                <a href="{% url 'activity_log' %}" 
+                   class="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition"
+                   title="View System Activity Log">
+                    <i data-lucide="history" class="w-3.5 h-3.5 text-blue-500"></i>
+                    <span>Activity Log</span>
+                </a>
             </div>
 
             <!-- Header Actions: Theme Switcher, View Switcher & Add Button -->
-            <div class="flex items-center space-x-1.5 sm:space-x-2.5">
+            <div class="flex items-center space-x-1.5 sm:space-x-2">
                 
-                <!-- Dark / White Mode Toggle Button -->
+                <!-- Activity Log Icon on mobile -->
+                <a href="{% url 'activity_log' %}" 
+                   class="md:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700" 
+                   title="Activity Log">
+                    <i data-lucide="history" class="w-4 h-4"></i>
+                </a>
+
+                <!-- Dark / Light Mode Toggle Button -->
                 <button @click="toggleTheme()" 
                         class="p-2 sm:px-2.5 sm:py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition flex items-center gap-1.5 shadow-xs"
-                        :title="darkMode ? 'Switch to White (Light) Mode' : 'Switch to Dark Mode'"
-                        aria-label="Toggle theme">
+                        :title="darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
                     <template x-if="darkMode">
-                        <div class="flex items-center gap-1">
-                            <i data-lucide="sun" class="w-4 h-4 text-amber-400"></i>
-                            <span class="hidden md:inline text-xs font-semibold">Light</span>
-                        </div>
+                        <i data-lucide="sun" class="w-4 h-4 text-amber-400"></i>
                     </template>
                     <template x-if="!darkMode">
-                        <div class="flex items-center gap-1">
-                            <i data-lucide="moon" class="w-4 h-4 text-blue-600"></i>
-                            <span class="hidden md:inline text-xs font-semibold">Dark</span>
-                        </div>
+                        <i data-lucide="moon" class="w-4 h-4 text-blue-600"></i>
                     </template>
                 </button>
 
@@ -118,18 +160,46 @@
                     </button>
                 </div>
 
-                <!-- Add Product Button -->
+                <!-- Add Product Button (Only for Super Admin) -->
+                {% if user_perm.can_manage_products %}
                 <button @click="openAddModal()" 
                         class="flex items-center space-x-1.5 sm:space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold shadow-md shadow-blue-500/25 transition transform active:scale-95">
                     <i data-lucide="plus-circle" class="w-4 h-4"></i>
                     <span class="hidden xs:inline">Add Product</span>
                 </button>
+                {% else %}
+                <button disabled title="Only Super Admin can add new products"
+                        class="flex items-center space-x-1.5 bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 px-3 py-2 rounded-xl text-xs font-semibold cursor-not-allowed">
+                    <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                    <span class="hidden sm:inline">Add (Locked)</span>
+                </button>
+                {% endif %}
             </div>
         </div>
     </header>
 
     <!-- Main Container -->
     <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8">
+
+        <!-- Role Announcement Banner -->
+        <div class="rounded-2xl p-3 sm:p-4 border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs {% if user_perm.is_super_admin %}bg-rose-500/10 border-rose-500/20 text-rose-800 dark:text-rose-300{% elif user_perm.is_employee %}bg-amber-500/10 border-amber-500/20 text-amber-800 dark:text-amber-300{% else %}bg-blue-500/10 border-blue-500/20 text-blue-800 dark:text-blue-300{% endif %}">
+            <div class="flex items-center space-x-2.5">
+                <i data-lucide="info" class="w-4 h-4 shrink-0"></i>
+                <span>
+                    <strong>Logged in as {{ user_perm.role_label }}:</strong> 
+                    {% if user_perm.is_super_admin %}
+                        You have full system access (Add products, edit details, delete items, adjust stock, and review audit logs).
+                    {% elif user_perm.is_employee %}
+                        You can adjust size stock quantities (+ / - buttons). Product catalogue details and deletions are locked.
+                    {% else %}
+                        Viewer mode active: Read-only access to view garments, availabilities, size breakdown, and valuations.
+                    {% endif %}
+                </span>
+            </div>
+            <div class="flex items-center space-x-2 shrink-0">
+                <a href="{% url 'activity_log' %}" class="underline font-bold hover:opacity-80">View Activity History &rarr;</a>
+            </div>
+        </div>
 
         <!-- Top KPI Summary Cards -->
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
@@ -211,13 +281,12 @@
         <div class="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-3.5 sm:p-4 space-y-3.5 shadow-xs">
             <form method="GET" action="{% url 'dashboard' %}" class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 sm:gap-3" id="filter-form">
                 
-                <!-- Live Search Box -->
                 <div class="relative flex-1">
                     <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
                     <input type="text" 
                            name="q" 
                            value="{{ query }}" 
-                           placeholder="Search code, name, colour, category..." 
+                           placeholder="Search SKU code, name, colour, category..." 
                            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-10 py-2 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition">
                     {% if query %}
                     <a href="{% url 'dashboard' %}" class="absolute right-3.5 top-2.5 text-slate-400 hover:text-slate-700 dark:hover:text-white p-0.5" title="Clear search">
@@ -229,7 +298,6 @@
                 <input type="hidden" name="category" value="{{ selected_category }}" id="hidden-category">
 
                 <div class="grid grid-cols-2 sm:flex sm:items-center gap-2">
-                    <!-- Status Dropdown -->
                     <select name="status" onchange="this.form.submit()"
                             class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-700 dark:text-white focus:outline-none focus:border-blue-500">
                         <option value="">All Statuses</option>
@@ -238,7 +306,6 @@
                         <option value="Out of Stock" {% if selected_status == 'Out of Stock' %}selected{% endif %}>Out of Stock (0)</option>
                     </select>
 
-                    <!-- Sorting Dropdown -->
                     <select name="sort" onchange="this.form.submit()"
                             class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-700 dark:text-white focus:outline-none focus:border-blue-500">
                         <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>Sort: Newest</option>
@@ -381,13 +448,18 @@
                                 <span>Total: <strong class="text-slate-900 dark:text-white text-sm" id="card-total-{{ product.id }}">{{ product.total_quantity }}</strong></span>
                             </div>
                             <div class="grid grid-cols-5 gap-1.5 text-center">
+                                
                                 <!-- Size S -->
                                 <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-1.5 flex flex-col items-center shadow-xs">
                                     <span class="text-[10px] font-bold text-slate-400">S</span>
                                     <span class="text-sm font-bold text-slate-900 dark:text-white my-1" id="stock-val-{{ product.id }}-s">{{ product.size_s }}</span>
                                     <div class="flex gap-1 w-full justify-center">
+                                        {% if user_perm.can_adjust_stock %}
                                         <button @click="adjustSize({{ product.id }}, 's', -1)" class="w-6 h-6 bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-950/60 hover:text-rose-600 dark:hover:text-rose-400 rounded-md text-xs flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold transition active:scale-90">-</button>
                                         <button @click="adjustSize({{ product.id }}, 's', 1)" class="w-6 h-6 bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-950/60 hover:text-blue-600 dark:hover:text-blue-400 rounded-md text-xs flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold transition active:scale-90">+</button>
+                                        {% else %}
+                                        <span class="text-[10px] text-slate-400 py-1" title="Viewer mode - Stock editing locked">Lock</span>
+                                        {% endif %}
                                     </div>
                                 </div>
 
@@ -396,8 +468,12 @@
                                     <span class="text-[10px] font-bold text-slate-400">M</span>
                                     <span class="text-sm font-bold text-slate-900 dark:text-white my-1" id="stock-val-{{ product.id }}-m">{{ product.size_m }}</span>
                                     <div class="flex gap-1 w-full justify-center">
+                                        {% if user_perm.can_adjust_stock %}
                                         <button @click="adjustSize({{ product.id }}, 'm', -1)" class="w-6 h-6 bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-950/60 hover:text-rose-600 dark:hover:text-rose-400 rounded-md text-xs flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold transition active:scale-90">-</button>
                                         <button @click="adjustSize({{ product.id }}, 'm', 1)" class="w-6 h-6 bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-950/60 hover:text-blue-600 dark:hover:text-blue-400 rounded-md text-xs flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold transition active:scale-90">+</button>
+                                        {% else %}
+                                        <span class="text-[10px] text-slate-400 py-1" title="Viewer mode - Stock editing locked">Lock</span>
+                                        {% endif %}
                                     </div>
                                 </div>
 
@@ -406,8 +482,12 @@
                                     <span class="text-[10px] font-bold text-slate-400">L</span>
                                     <span class="text-sm font-bold text-slate-900 dark:text-white my-1" id="stock-val-{{ product.id }}-l">{{ product.size_l }}</span>
                                     <div class="flex gap-1 w-full justify-center">
+                                        {% if user_perm.can_adjust_stock %}
                                         <button @click="adjustSize({{ product.id }}, 'l', -1)" class="w-6 h-6 bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-950/60 hover:text-rose-600 dark:hover:text-rose-400 rounded-md text-xs flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold transition active:scale-90">-</button>
                                         <button @click="adjustSize({{ product.id }}, 'l', 1)" class="w-6 h-6 bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-950/60 hover:text-blue-600 dark:hover:text-blue-400 rounded-md text-xs flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold transition active:scale-90">+</button>
+                                        {% else %}
+                                        <span class="text-[10px] text-slate-400 py-1" title="Viewer mode - Stock editing locked">Lock</span>
+                                        {% endif %}
                                     </div>
                                 </div>
 
@@ -416,8 +496,12 @@
                                     <span class="text-[10px] font-bold text-slate-400">XL</span>
                                     <span class="text-sm font-bold text-slate-900 dark:text-white my-1" id="stock-val-{{ product.id }}-xl">{{ product.size_xl }}</span>
                                     <div class="flex gap-1 w-full justify-center">
+                                        {% if user_perm.can_adjust_stock %}
                                         <button @click="adjustSize({{ product.id }}, 'xl', -1)" class="w-6 h-6 bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-950/60 hover:text-rose-600 dark:hover:text-rose-400 rounded-md text-xs flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold transition active:scale-90">-</button>
                                         <button @click="adjustSize({{ product.id }}, 'xl', 1)" class="w-6 h-6 bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-950/60 hover:text-blue-600 dark:hover:text-blue-400 rounded-md text-xs flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold transition active:scale-90">+</button>
+                                        {% else %}
+                                        <span class="text-[10px] text-slate-400 py-1" title="Viewer mode - Stock editing locked">Lock</span>
+                                        {% endif %}
                                     </div>
                                 </div>
 
@@ -426,8 +510,12 @@
                                     <span class="text-[10px] font-bold text-slate-400">2XL</span>
                                     <span class="text-sm font-bold text-slate-900 dark:text-white my-1" id="stock-val-{{ product.id }}-xxl">{{ product.size_xxl }}</span>
                                     <div class="flex gap-1 w-full justify-center">
+                                        {% if user_perm.can_adjust_stock %}
                                         <button @click="adjustSize({{ product.id }}, 'xxl', -1)" class="w-6 h-6 bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-950/60 hover:text-rose-600 dark:hover:text-rose-400 rounded-md text-xs flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold transition active:scale-90">-</button>
                                         <button @click="adjustSize({{ product.id }}, 'xxl', 1)" class="w-6 h-6 bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-950/60 hover:text-blue-600 dark:hover:text-blue-400 rounded-md text-xs flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold transition active:scale-90">+</button>
+                                        {% else %}
+                                        <span class="text-[10px] text-slate-400 py-1" title="Viewer mode - Stock editing locked">Lock</span>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -439,7 +527,7 @@
                                 Stock Val: <span class="text-amber-600 dark:text-amber-400 font-semibold" id="card-val-{{ product.id }}">৳{{ product.stock_value|floatformat:0 }}</span>
                             </div>
                             <div class="flex items-center space-x-1">
-                                <!-- Preview button -->
+                                <!-- Preview button (Available to all) -->
                                 <button @click="openPreviewModal({
                                             id: '{{ product.id }}',
                                             code: '{{ product.code }}',
@@ -465,7 +553,8 @@
                                     <i data-lucide="eye" class="w-4 h-4"></i>
                                 </button>
                                 
-                                <!-- Edit button -->
+                                <!-- Edit & Delete buttons (Only Super Admin) -->
+                                {% if user_perm.can_manage_products %}
                                 <button @click="openEditModal({
                                             id: '{{ product.id }}',
                                             code: '{{ product.code }}',
@@ -484,11 +573,11 @@
                                     <i data-lucide="pencil" class="w-4 h-4"></i>
                                 </button>
 
-                                <!-- Delete button -->
                                 <button @click="openDeleteModal('{{ product.id }}', '{{ product.code }}', '{{ product.name|escapejs }}')" 
                                         class="p-2 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Delete Product">
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -624,6 +713,8 @@
                                                 class="p-1.5 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" title="Preview">
                                             <i data-lucide="eye" class="w-4 h-4"></i>
                                         </button>
+                                        
+                                        {% if user_perm.can_manage_products %}
                                         <button @click="openEditModal({
                                                     id: '{{ product.id }}',
                                                     code: '{{ product.code }}',
@@ -645,6 +736,7 @@
                                                 class="p-1.5 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" title="Delete">
                                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                                         </button>
+                                        {% endif %}
                                     </div>
                                 </td>
                             </tr>
@@ -674,7 +766,7 @@
                             <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
                             <span>Reset Filters</span>
                         </a>
-                    {% else %}
+                    {% elif user_perm.can_manage_products %}
                         <button @click="openAddModal()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-md shadow-blue-500/25 transition">
                             <i data-lucide="plus" class="w-4 h-4"></i>
                             <span>Add First Product</span>
@@ -688,7 +780,8 @@
 
     <!-- ==================== MODALS ==================== -->
 
-    <!-- 1. ADD PRODUCT MODAL -->
+    {% if user_perm.can_manage_products %}
+    <!-- 1. ADD PRODUCT MODAL (Super Admin Only) -->
     <div x-show="showAddModal" x-cloak 
          class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl transition transform my-6 sm:my-8"
@@ -736,7 +829,6 @@
                     </div>
                 </div>
 
-                <!-- Product Photo -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Garment Photo</label>
                     <div class="bg-slate-50 dark:bg-slate-950 border border-dashed border-slate-300 dark:border-slate-800 rounded-xl p-3">
@@ -744,7 +836,6 @@
                     </div>
                 </div>
 
-                <!-- Initial Size Stock Matrix -->
                 <div class="bg-slate-50 dark:bg-slate-950/80 p-4 rounded-xl border border-slate-200 dark:border-slate-800/80">
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">Initial Size Quantities</label>
                     <div class="grid grid-cols-5 gap-2 text-center">
@@ -784,7 +875,7 @@
     </div>
 
 
-    <!-- 2. EDIT PRODUCT MODAL -->
+    <!-- 2. EDIT PRODUCT MODAL (Super Admin Only) -->
     <div x-show="showEditModal" x-cloak 
          class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl transition transform my-6 sm:my-8"
@@ -836,7 +927,6 @@
                     </div>
                 </div>
 
-                <!-- Replace Garment Photo -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Replace Photo (Optional)</label>
                     <div class="bg-slate-50 dark:bg-slate-950 border border-dashed border-slate-300 dark:border-slate-800 rounded-xl p-3">
@@ -844,7 +934,6 @@
                     </div>
                 </div>
 
-                <!-- Size Stock Matrix -->
                 <div class="bg-slate-50 dark:bg-slate-950/80 p-4 rounded-xl border border-slate-200 dark:border-slate-800/80">
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">Size Quantities Matrix</label>
                     <div class="grid grid-cols-5 gap-2 text-center">
@@ -884,7 +973,40 @@
     </div>
 
 
-    <!-- 3. PRODUCT PREVIEW MODAL -->
+    <!-- 4. DELETE CONFIRMATION MODAL (Super Admin Only) -->
+    <div x-show="showDeleteModal" x-cloak 
+         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transition transform"
+             @click.away="showDeleteModal = false">
+            
+            <div class="p-6 text-center space-y-4">
+                <div class="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-500 border border-rose-200 dark:border-rose-500/20 flex items-center justify-center mx-auto">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Delete Product Confirmation</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Are you sure you want to permanently delete SKU <span class="font-mono text-blue-600 dark:text-blue-400 font-bold" x-text="deleteData.code"></span> (<span x-text="deleteData.name"></span>)?
+                    </p>
+                    <p class="text-[11px] text-rose-500 dark:text-rose-400/80 mt-2">This action permanently deletes all associated stock movements and uploaded media.</p>
+                </div>
+
+                <form :action="'/product/' + deleteData.id + '/delete/'" method="POST" class="flex items-center justify-center space-x-3 pt-2">
+                    {% csrf_token %}
+                    <button type="button" @click="showDeleteModal = false" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-xl shadow-md shadow-rose-600/25 transition">
+                        Yes, Delete Product
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <!-- 3. PRODUCT PREVIEW MODAL (Available to All Roles) -->
     <div x-show="showPreviewModal" x-cloak 
          class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl transition transform my-6 sm:my-8"
@@ -944,7 +1066,6 @@
                             </div>
                         </div>
 
-                        <!-- Margin & Sold info -->
                         <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mt-3 px-1">
                             <span>Profit Margin: <strong class="text-blue-600 dark:text-blue-400" x-text="previewData.margin + '%'"></strong></span>
                             <span>Historical Sales: <strong class="text-indigo-600 dark:text-indigo-400" x-text="previewData.sold + ' units'"></strong></span>
@@ -953,7 +1074,7 @@
 
                     <!-- Size Breakdown Table -->
                     <div class="bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
-                        <div class="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">Available Size Breakdown</div>
+                        <div class="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">Available Size Stock Breakdown</div>
                         <div class="grid grid-cols-5 gap-1.5 text-center">
                             <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
                                 <div class="text-[10px] text-slate-400 font-bold">S</div>
@@ -988,38 +1109,6 @@
         </div>
     </div>
 
-
-    <!-- 4. DELETE CONFIRMATION MODAL -->
-    <div x-show="showDeleteModal" x-cloak 
-         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transition transform"
-             @click.away="showDeleteModal = false">
-            
-            <div class="p-6 text-center space-y-4">
-                <div class="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-500 border border-rose-200 dark:border-rose-500/20 flex items-center justify-center mx-auto">
-                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Delete Product Confirmation</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Are you sure you want to permanently delete SKU <span class="font-mono text-blue-600 dark:text-blue-400 font-bold" x-text="deleteData.code"></span> (<span x-text="deleteData.name"></span>)?
-                    </p>
-                    <p class="text-[11px] text-rose-500 dark:text-rose-400/80 mt-2">This action permanently deletes all associated stock movements and uploaded media.</p>
-                </div>
-
-                <form :action="'/product/' + deleteData.id + '/delete/'" method="POST" class="flex items-center justify-center space-x-3 pt-2">
-                    {% csrf_token %}
-                    <button type="button" @click="showDeleteModal = false" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition">
-                        Cancel
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-xl shadow-md shadow-rose-600/25 transition">
-                        Yes, Delete Product
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
     <!-- CSRF Helper & Alpine Application Logic -->
     <script>
         function getCookie(name) {
@@ -1039,7 +1128,7 @@
 
         function inventoryApp() {
             return {
-                darkMode: localStorage.getItem('theme') !== 'light', // Default to Dark or saved preference
+                darkMode: localStorage.getItem('theme') !== 'light',
                 currentView: 'grid',
                 showAddModal: false,
                 showEditModal: false,
@@ -1051,7 +1140,6 @@
                 deleteData: {},
 
                 init() {
-                    // Initialize theme based on preference
                     if (this.darkMode) {
                         document.documentElement.classList.add('dark');
                     } else {

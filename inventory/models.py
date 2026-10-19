@@ -1,6 +1,39 @@
 from django.db import models
+from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
+
+class UserProfile(models.Model):
+    ROLE_SUPER_ADMIN = 'SUPER_ADMIN'
+    ROLE_EMPLOYEE = 'EMPLOYEE'
+    ROLE_VIEWER = 'VIEWER'
+
+    ROLE_CHOICES = [
+        (ROLE_SUPER_ADMIN, 'Super Admin (Full Access)'),
+        (ROLE_EMPLOYEE, 'Employee (Edit Stock Only)'),
+        (ROLE_VIEWER, 'Viewer (Read Only)'),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_VIEWER)
+
+    def __str__(self):
+        return f"{self.user.username} ({self.get_role_display()})"
+
+    @property
+    def can_manage_products(self):
+        # Super admin can create, edit product details, delete product
+        return self.user.is_superuser or self.role == self.ROLE_SUPER_ADMIN
+
+    @property
+    def can_adjust_stock(self):
+        # Super admin and Employee can adjust stock (+ / -)
+        return self.user.is_superuser or self.role in [self.ROLE_SUPER_ADMIN, self.ROLE_EMPLOYEE]
+
+    @property
+    def is_viewer(self):
+        return not self.user.is_superuser and self.role == self.ROLE_VIEWER
+
 
 class Product(models.Model):
     CATEGORY_CHOICES = [
@@ -66,7 +99,6 @@ class Product(models.Model):
 
     @property
     def sold_quantity(self):
-        # Dynamically compute total units sold from movements
         sales = self.movements.filter(movement_type='SALE').aggregate(total_sold=models.Sum('quantity'))['total_sold']
         return sales or 0
 
@@ -107,3 +139,30 @@ class StockMovement(models.Model):
 
     def __str__(self):
         return f"{self.movement_type} {self.quantity}x {self.product.code} ({self.size})"
+
+
+class ActivityLog(models.Model):
+    ACTION_CHOICES = [
+        ('PRODUCT_CREATED', 'Product Created'),
+        ('PRODUCT_UPDATED', 'Product Updated'),
+        ('PRODUCT_DELETED', 'Product Deleted'),
+        ('STOCK_RESTOCKED', 'Stock Restocked'),
+        ('STOCK_SOLD', 'Stock Sold'),
+        ('USER_LOGIN', 'User Login'),
+        ('USER_LOGOUT', 'User Logout'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='activity_logs')
+    user_role = models.CharField(max_length=30, blank=True)
+    action = models.CharField(max_length=30, choices=ACTION_CHOICES)
+    product_code = models.CharField(max_length=30, blank=True)
+    product_name = models.CharField(max_length=150, blank=True)
+    details = models.TextField(blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"[{self.timestamp.strftime('%Y-%m-%d %H:%M')}] {self.user} - {self.action}: {self.details}"
