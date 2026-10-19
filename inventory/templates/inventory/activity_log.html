@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en" :class="{ 'dark': darkMode }">
 <head>
@@ -23,26 +24,11 @@
     </script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>
-        [x-cloak] { display: none !important; }
-        html { transition: background-color 0.2s ease, color 0.2s ease; }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <script src="{% static 'js/activity_log.js' %}"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen font-sans antialiased"
-      x-data="{ 
-          darkMode: localStorage.getItem('theme') !== 'light',
-          toggleTheme() {
-              this.darkMode = !this.darkMode;
-              if (this.darkMode) {
-                  document.documentElement.classList.add('dark');
-                  localStorage.setItem('theme', 'dark');
-              } else {
-                  document.documentElement.classList.remove('dark');
-                  localStorage.setItem('theme', 'light');
-              }
-              this.$nextTick(() => lucide.createIcons());
-          }
-      }">
+      x-data="activityLogApp()">
 
     <!-- Top Header -->
     <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
@@ -184,17 +170,6 @@
         </div>
 
     </main>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('theme') !== 'light') {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-            lucide.createIcons();
-        });
-    </script>
 </body>
 </html>
 

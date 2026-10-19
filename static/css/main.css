@@ -1,0 +1,41 @@
+/* Mowria Fashion (MFB) - External Custom Stylesheet */
+
+[x-cloak] {
+    display: none !important;
+}
+
+html {
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+button, a, input, select {
+    touch-action: manipulation;
+}
+
+/* Custom modern scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.4);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.7);
+}
+
+/* Hide scrollbar for category pill horizontal swipe */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
