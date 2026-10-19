@@ -15,7 +15,7 @@ services:
       - key: CLOUDINARY_CLOUD_NAME
         value: hmfgynty
       - key: CLOUDINARY_API_KEY
-        value: jCOtwOAxMn5MW1zeeV9vCNAU8Dc
+        value: "765948753562913"
       - key: CLOUDINARY_API_SECRET
-        sync: false
+        value: jCOtwOAxMn5MW1zeeV9vCNAU8Dc
 
