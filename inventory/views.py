@@ -178,9 +178,17 @@ def dashboard(request):
     low_stock_count = sum(1 for p in all_products if p.stock_status == 'Low Stock')
     out_of_stock_count = sum(1 for p in all_products if p.stock_status == 'Out of Stock')
 
-    total_units_sold = StockMovement.objects.filter(movement_type='SALE').aggregate(
-        total=Sum('quantity')
-    )['total'] or 0
+    # Sales & Return Analytics
+    sales_qs = StockMovement.objects.filter(movement_type='SALE')
+    return_qs = StockMovement.objects.filter(movement_type='RETURN')
+
+    total_units_sold = sales_qs.aggregate(total=Sum('quantity'))['total'] or 0
+    total_sales_revenue = sales_qs.aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
+    total_units_returned = return_qs.aggregate(total=Sum('quantity'))['total'] or 0
+    total_return_amount = return_qs.aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
+
+    # Net Sales Value
+    net_sales_revenue = total_sales_revenue - total_return_amount
 
     # Analytics: Overall Margin & Capital ROI
     overall_avg_margin = (
@@ -230,16 +238,26 @@ def dashboard(request):
                 'valuation': float(cat_val),
             })
 
+    # Recent Transactions (Sales & Returns) for the Tracker
+    recent_transactions = StockMovement.objects.filter(
+        movement_type__in=['SALE', 'RETURN']
+    ).select_related('product').order_by('-timestamp')[:30]
+
     product_form = ProductForm()
     user_perm = get_user_role_context(request)
     recent_activities = ActivityLog.objects.all()[:10]
 
     context = {
         'products': product_list,
+        'all_products_dropdown': all_products,
         'kpis': {
             'total_active_skus': total_active_skus,
             'total_in_stock_units': total_in_stock_units,
             'total_units_sold': total_units_sold,
+            'total_sales_revenue': total_sales_revenue,
+            'total_units_returned': total_units_returned,
+            'total_return_amount': total_return_amount,
+            'net_sales_revenue': net_sales_revenue,
             'total_stock_value': total_stock_value,
             'total_potential_revenue': total_potential_revenue,
             'total_expected_profit': total_expected_profit,
@@ -258,6 +276,7 @@ def dashboard(request):
         'product_form': product_form,
         'user_perm': user_perm,
         'recent_activities': recent_activities,
+        'recent_transactions': recent_transactions,
     }
     return render(request, 'inventory/dashboard.html', context)
 
@@ -410,6 +429,116 @@ def adjust_size_stock(request, pk):
         'sold_quantity': product.sold_quantity,
         'profit_margin': round(product.profit_margin, 1)
     })
+
+
+@require_POST
+def record_sale(request):
+    user_perm = get_user_role_context(request)
+    if not user_perm['can_adjust_stock']:
+        return HttpResponseForbidden("Access Denied: You do not have permission to record sales.")
+
+    product_id = request.POST.get('product_id')
+    size = request.POST.get('size', '').lower()
+    try:
+        quantity = int(request.POST.get('quantity', 1))
+    except (ValueError, TypeError):
+        quantity = 1
+
+    custom_price = request.POST.get('unit_price')
+    notes = request.POST.get('notes', '').strip()
+
+    product = get_object_or_404(Product, pk=product_id)
+    valid_sizes = {
+        's': 'size_s',
+        'm': 'size_m',
+        'l': 'size_l',
+        'xl': 'size_xl',
+        'xxl': 'size_xxl',
+    }
+    if size not in valid_sizes or quantity <= 0:
+        return redirect('dashboard')
+
+    field_name = valid_sizes[size]
+    current_stock = getattr(product, field_name)
+    if current_stock < quantity:
+        # Cannot sell more than available
+        return redirect('dashboard')
+
+    setattr(product, field_name, current_stock - quantity)
+    product.save(update_fields=[field_name, 'updated_at'])
+
+    unit_price = Decimal(custom_price) if custom_price else product.price
+
+    StockMovement.objects.create(
+        product=product,
+        movement_type='SALE',
+        size=size.upper(),
+        quantity=quantity,
+        unit_price=unit_price,
+        notes=notes or f"Customer Sale ({quantity}x {size.upper()})"
+    )
+
+    log_activity(
+        request,
+        'STOCK_SOLD',
+        product=product,
+        details=f"Recorded sale of {quantity} unit(s) of size {size.upper()} at ৳{unit_price}. Remaining stock for size: {getattr(product, field_name)}"
+    )
+
+    return redirect('dashboard')
+
+
+@require_POST
+def process_return(request):
+    user_perm = get_user_role_context(request)
+    if not user_perm['can_adjust_stock']:
+        return HttpResponseForbidden("Access Denied: You do not have permission to process returns.")
+
+    product_id = request.POST.get('product_id')
+    size = request.POST.get('size', '').lower()
+    try:
+        quantity = int(request.POST.get('quantity', 1))
+    except (ValueError, TypeError):
+        quantity = 1
+
+    refund_price = request.POST.get('refund_price')
+    notes = request.POST.get('notes', '').strip()
+
+    product = get_object_or_404(Product, pk=product_id)
+    valid_sizes = {
+        's': 'size_s',
+        'm': 'size_m',
+        'l': 'size_l',
+        'xl': 'size_xl',
+        'xxl': 'size_xxl',
+    }
+    if size not in valid_sizes or quantity <= 0:
+        return redirect('dashboard')
+
+    field_name = valid_sizes[size]
+    current_stock = getattr(product, field_name)
+    setattr(product, field_name, current_stock + quantity)
+    product.save(update_fields=[field_name, 'updated_at'])
+
+    unit_price = Decimal(refund_price) if refund_price else product.price
+
+    StockMovement.objects.create(
+        product=product,
+        movement_type='RETURN',
+        size=size.upper(),
+        quantity=quantity,
+        unit_price=unit_price,
+        notes=notes or f"Customer Return ({quantity}x {size.upper()})"
+    )
+
+    log_activity(
+        request,
+        'STOCK_RESTOCKED',
+        product=product,
+        details=f"Processed customer return of {quantity} unit(s) of size {size.upper()} (Refunded ৳{unit_price}/unit). New stock: {getattr(product, field_name)}"
+    )
+
+    return redirect('dashboard')
 
 
 @require_POST

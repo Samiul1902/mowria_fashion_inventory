@@ -91,9 +91,134 @@ function inventoryApp() {
             this.showScannerModal = false;
         },
 
+        showSaleModal: false,
+        showReturnModal: false,
+        showCameraModal: false,
+        cameraTargetInputId: null,
+        cameraStream: null,
+        cameraFacingMode: 'environment',
+
+        saleFormData: {
+            productId: '',
+            size: 'm',
+            quantity: 1,
+            unitPrice: '',
+            notes: ''
+        },
+
+        returnFormData: {
+            productId: '',
+            size: 'm',
+            quantity: 1,
+            refundPrice: '',
+            notes: ''
+        },
+
         openAddModal() {
             this.showAddModal = true;
             this.$nextTick(() => lucide.createIcons());
+        },
+
+        openSaleModal(productId = '', defaultPrice = '') {
+            this.saleFormData = {
+                productId: productId || '',
+                size: 'm',
+                quantity: 1,
+                unitPrice: defaultPrice || '',
+                notes: ''
+            };
+            this.showSaleModal = true;
+            this.$nextTick(() => lucide.createIcons());
+        },
+
+        openReturnModal(productId = '', defaultPrice = '') {
+            this.returnFormData = {
+                productId: productId || '',
+                size: 'm',
+                quantity: 1,
+                refundPrice: defaultPrice || '',
+                notes: ''
+            };
+            this.showReturnModal = true;
+            this.$nextTick(() => lucide.createIcons());
+        },
+
+        // Direct Mobile & Webcam Live Camera Capture
+        async openCamera(targetInputId) {
+            this.cameraTargetInputId = targetInputId;
+            this.showCameraModal = true;
+            this.$nextTick(async () => {
+                lucide.createIcons();
+                await this.startCameraStream();
+            });
+        },
+
+        async startCameraStream() {
+            try {
+                if (this.cameraStream) {
+                    this.cameraStream.getTracks().forEach(t => t.stop());
+                }
+                const constraints = {
+                    video: {
+                        facingMode: { ideal: this.cameraFacingMode },
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                };
+                this.cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+                const videoEl = document.getElementById('camera-stream-video');
+                if (videoEl) {
+                    videoEl.srcObject = this.cameraStream;
+                    videoEl.play();
+                }
+            } catch (err) {
+                console.warn('Camera stream permission or device issue:', err);
+                alert('Could not start camera. Please verify camera permissions in your browser, or select a file using the file picker.');
+                this.closeCamera();
+            }
+        },
+
+        switchCameraFacing() {
+            this.cameraFacingMode = this.cameraFacingMode === 'environment' ? 'user' : 'environment';
+            this.startCameraStream();
+        },
+
+        snapPhoto() {
+            const videoEl = document.getElementById('camera-stream-video');
+            const canvasEl = document.getElementById('camera-stream-canvas');
+            if (!videoEl || !canvasEl) return;
+
+            canvasEl.width = videoEl.videoWidth || 640;
+            canvasEl.height = videoEl.videoHeight || 480;
+            const ctx = canvasEl.getContext('2d');
+            ctx.drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
+
+            canvasEl.toBlob((blob) => {
+                if (!blob) return;
+                const file = new File([blob], `garment_photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+
+                const targetInput = document.getElementById(this.cameraTargetInputId);
+                if (targetInput) {
+                    targetInput.files = dataTransfer.files;
+                    // Trigger preview visual if present
+                    const previewText = document.getElementById(this.cameraTargetInputId + '-status');
+                    if (previewText) {
+                        previewText.innerText = `Captured: ${file.name} (${Math.round(file.size / 1024)} KB)`;
+                    }
+                }
+                this.closeCamera();
+            }, 'image/jpeg', 0.92);
+        },
+
+        closeCamera() {
+            if (this.cameraStream) {
+                this.cameraStream.getTracks().forEach(t => t.stop());
+                this.cameraStream = null;
+            }
+            this.showCameraModal = false;
         },
 
         openEditModal(data) {
