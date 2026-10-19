@@ -18,3 +18,4 @@ services:
         value: jCOtwOAxMn5MW1zeeV9vCNAU8Dc
       - key: CLOUDINARY_API_SECRET
         sync: false
+
