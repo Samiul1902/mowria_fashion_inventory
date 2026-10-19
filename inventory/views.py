@@ -651,3 +651,17 @@ def sales_tracker_view(request):
         'total_return_amount': total_return_amount,
         'net_sales_revenue': net_sales_revenue,
     })
+
+
+def generate_sku_api(request):
+    """
+    Returns an auto-generated SKU based on Category and Colour query parameters.
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    
+    category = request.GET.get('category', 'T-Shirt').strip()
+    colour = request.GET.get('colour', '').strip()
+    sku = Product.generate_sku(category=category, colour=colour)
+    return JsonResponse({'sku': sku})
+

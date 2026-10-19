@@ -28,6 +28,11 @@ chart_input_cls = (
 )
 
 class ProductForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'code' in self.fields:
+            self.fields['code'].required = False
+
     class Meta:
         model = Product
         fields = [
@@ -44,8 +49,8 @@ class ProductForm(forms.ModelForm):
         widgets = {
             'code': forms.TextInput(attrs={
                 'class': f"{input_base_cls} font-mono uppercase tracking-wider",
-                'placeholder': 'e.g. MFB-0001',
-                'required': True
+                'placeholder': 'Auto-generated or custom (e.g. MFB-TSH-NVY-001)',
+                'id': 'add-product-code'
             }),
             'name': forms.TextInput(attrs={
                 'class': input_base_cls,

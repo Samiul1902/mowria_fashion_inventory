@@ -94,6 +94,55 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.code} - {self.name}"
 
+    @classmethod
+    def generate_sku(cls, category='T-Shirt', colour=''):
+        """
+        Auto-generates an apparel SKU following Option B:
+        Format: MFB-<CATEGORY_CODE>-<COLOUR_CODE>-<COUNTER>
+        e.g. MFB-TSH-NVY-001, MFB-POL-WHT-002
+        """
+        cat_map = {
+            'T-Shirt': 'TSH',
+            'Shirt': 'SHT',
+            'Polo': 'POL',
+            'Full Sleeve Shirt (Cotton)': 'FSC',
+            'Full Sleeve (Cotton & wool)': 'FSW',
+            'Other': 'OTH',
+        }
+        cat_code = cat_map.get(category, 'GEN')
+
+        # Clean and extract 3-letter colour code
+        clean_colour = (colour or '').strip().upper()
+        colour_words = clean_colour.split()
+        if len(colour_words) >= 2:
+            colour_code = (colour_words[0][:2] + colour_words[1][:1])[:3]
+        elif len(clean_colour) >= 3:
+            colour_code = clean_colour[:3]
+        elif len(clean_colour) > 0:
+            colour_code = clean_colour.ljust(3, 'X')
+        else:
+            colour_code = 'GEN'
+
+        prefix = f"MFB-{cat_code}-{colour_code}"
+
+        # Find existing SKUs with this prefix to get the next sequential number
+        similar = cls.objects.filter(code__startswith=prefix).values_list('code', flat=True)
+        max_num = 0
+        for code_str in similar:
+            parts = code_str.split('-')
+            if len(parts) >= 4 and parts[-1].isdigit():
+                max_num = max(max_num, int(parts[-1]))
+
+        next_num = max_num + 1
+        return f"{prefix}-{next_num:03d}"
+
+    def save(self, *args, **kwargs):
+        if not self.code or not self.code.strip():
+            self.code = self.generate_sku(self.category, self.colour)
+        else:
+            self.code = self.code.strip().upper()
+        super().save(*args, **kwargs)
+
     @property
     def total_quantity(self):
         return self.size_s + self.size_m + self.size_l + self.size_xl + self.size_xxl

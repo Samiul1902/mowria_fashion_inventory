@@ -117,7 +117,32 @@ function inventoryApp() {
 
         openAddModal() {
             this.showAddModal = true;
-            this.$nextTick(() => lucide.createIcons());
+            this.$nextTick(() => {
+                lucide.createIcons();
+                this.autoGenerateSku();
+            });
+        },
+
+        async autoGenerateSku() {
+            const catElem = document.querySelector('select[name="category"]');
+            const colElem = document.querySelector('input[name="colour"]');
+            const codeElem = document.querySelector('input[name="code"]');
+            if (!codeElem) return;
+
+            const category = catElem ? catElem.value : 'T-Shirt';
+            const colour = colElem ? colElem.value : '';
+
+            try {
+                const response = await fetch(`/api/generate-sku/?category=${encodeURIComponent(category)}&colour=${encodeURIComponent(colour)}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.sku) {
+                        codeElem.value = data.sku;
+                    }
+                }
+            } catch (err) {
+                console.error("Auto SKU generation error:", err);
+            }
         },
 
         openSaleModal(productId = '', defaultPrice = '') {
