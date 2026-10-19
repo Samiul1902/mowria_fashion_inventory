@@ -62,26 +62,26 @@ class Product(models.Model):
     size_xxl = models.PositiveIntegerField(default=0)
 
     # Garment Size Chart Specifications (in inches)
-    # S: Chest, Length, Shoulder
-    s_chest = models.DecimalField(max_digits=5, decimal_places=1, default=Decimal('38.0'), blank=True, null=True)
-    s_length = models.DecimalField(max_digits=5, decimal_places=1, default=Decimal('27.0'), blank=True, null=True)
-    s_shoulder = models.DecimalField(max_digits=5, decimal_places=1, default=Decimal('17.0'), blank=True, null=True)
+    # S: Chest, Length, Sleeves (s_shoulder field stores Sleeves)
+    s_chest = models.DecimalField(max_digits=5, decimal_places=1, default=None, blank=True, null=True)
+    s_length = models.DecimalField(max_digits=5, decimal_places=1, default=None, blank=True, null=True)
+    s_shoulder = models.DecimalField(max_digits=5, decimal_places=1, default=None, blank=True, null=True)
     # M
-    m_chest = models.DecimalField(max_digits=5, decimal_places=1, default=Decimal('40.0'), blank=True, null=True)
-    m_length = models.DecimalField(max_digits=5, decimal_places=1, default=Decimal('28.0'), blank=True, null=True)
-    m_shoulder = models.DecimalField(max_digits=5, decimal_places=1, default=Decimal('17.5'), blank=True, null=True)
+    m_chest = models.DecimalField(max_digits=5, decimal_places=1, default=None, blank=True, null=True)
+    m_length = models.DecimalField(max_digits=5, decimal_places=1, default=None, blank=True, null=True)
+    m_shoulder = models.DecimalField(max_digits=5, decimal_places=1, default=None, blank=True, null=True)
     # L
-    l_chest = models.DecimalField(max_digits=5, decimal_places=1, default=Decimal('42.0'), blank=True, null=True)
-    l_length = models.DecimalField(max_digits=5, decimal_places=1, default=Decimal('29.0'), blank=True, null=True)
-    l_shoulder = models.DecimalField(max_digits=5, decimal_places=1, default=Decimal('18.0'), blank=True, null=True)
+    l_chest = models.DecimalField(max_digits=5, decimal_places=1, default=None, blank=True, null=True)
+    l_length = models.DecimalField(max_digits=5, decimal_places=1, default=None, blank=True, null=True)
+    l_shoulder = models.DecimalField(max_digits=5, decimal_places=1, default=None, blank=True, null=True)
     # XL
-    xl_chest = models.DecimalField(max_digits=5, decimal_places=1, default=Decimal('44.0'), blank=True, null=True)
-    xl_length = models.DecimalField(max_digits=5, decimal_places=1, default=Decimal('30.0'), blank=True, null=True)
-    xl_shoulder = models.DecimalField(max_digits=5, decimal_places=1, default=Decimal('18.5'), blank=True, null=True)
+    xl_chest = models.DecimalField(max_digits=5, decimal_places=1, default=None, blank=True, null=True)
+    xl_length = models.DecimalField(max_digits=5, decimal_places=1, default=None, blank=True, null=True)
+    xl_shoulder = models.DecimalField(max_digits=5, decimal_places=1, default=None, blank=True, null=True)
     # XXL
-    xxl_chest = models.DecimalField(max_digits=5, decimal_places=1, default=Decimal('46.0'), blank=True, null=True)
-    xxl_length = models.DecimalField(max_digits=5, decimal_places=1, default=Decimal('31.0'), blank=True, null=True)
-    xxl_shoulder = models.DecimalField(max_digits=5, decimal_places=1, default=Decimal('19.0'), blank=True, null=True)
+    xxl_chest = models.DecimalField(max_digits=5, decimal_places=1, default=None, blank=True, null=True)
+    xxl_length = models.DecimalField(max_digits=5, decimal_places=1, default=None, blank=True, null=True)
+    xxl_shoulder = models.DecimalField(max_digits=5, decimal_places=1, default=None, blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

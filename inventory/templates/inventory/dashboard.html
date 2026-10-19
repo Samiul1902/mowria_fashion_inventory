@@ -502,21 +502,21 @@
                                 profit: '{{ product.expected_profit }}',
                                 margin: '{{ product.profit_margin|floatformat:1 }}',
                                 sold: {{ product.sold_quantity }},
-                                s_chest: '{{ product.s_chest|default:'38.0' }}',
-                                s_length: '{{ product.s_length|default:'27.0' }}',
-                                s_shoulder: '{{ product.s_shoulder|default:'17.0' }}',
-                                m_chest: '{{ product.m_chest|default:'40.0' }}',
-                                m_length: '{{ product.m_length|default:'28.0' }}',
-                                m_shoulder: '{{ product.m_shoulder|default:'17.5' }}',
-                                l_chest: '{{ product.l_chest|default:'42.0' }}',
-                                l_length: '{{ product.l_length|default:'29.0' }}',
-                                l_shoulder: '{{ product.l_shoulder|default:'18.0' }}',
-                                xl_chest: '{{ product.xl_chest|default:'44.0' }}',
-                                xl_length: '{{ product.xl_length|default:'30.0' }}',
-                                xl_shoulder: '{{ product.xl_shoulder|default:'18.5' }}',
-                                xxl_chest: '{{ product.xxl_chest|default:'46.0' }}',
-                                xxl_length: '{{ product.xxl_length|default:'31.0' }}',
-                                xxl_shoulder: '{{ product.xxl_shoulder|default:'19.0' }}'
+                                s_chest: '{{ product.s_chest|default:'' }}',
+                                s_length: '{{ product.s_length|default:'' }}',
+                                s_shoulder: '{{ product.s_shoulder|default:'' }}',
+                                m_chest: '{{ product.m_chest|default:'' }}',
+                                m_length: '{{ product.m_length|default:'' }}',
+                                m_shoulder: '{{ product.m_shoulder|default:'' }}',
+                                l_chest: '{{ product.l_chest|default:'' }}',
+                                l_length: '{{ product.l_length|default:'' }}',
+                                l_shoulder: '{{ product.l_shoulder|default:'' }}',
+                                xl_chest: '{{ product.xl_chest|default:'' }}',
+                                xl_length: '{{ product.xl_length|default:'' }}',
+                                xl_shoulder: '{{ product.xl_shoulder|default:'' }}',
+                                xxl_chest: '{{ product.xxl_chest|default:'' }}',
+                                xxl_length: '{{ product.xxl_length|default:'' }}',
+                                xxl_shoulder: '{{ product.xxl_shoulder|default:'' }}'
                             })">
                     
                     <!-- Top Product Photo & Badges -->
@@ -711,21 +711,21 @@
                                             size_l: {{ product.size_l }},
                                             size_xl: {{ product.size_xl }},
                                             size_xxl: {{ product.size_xxl }},
-                                            s_chest: '{{ product.s_chest|default:'38.0' }}',
-                                            s_length: '{{ product.s_length|default:'27.0' }}',
-                                            s_shoulder: '{{ product.s_shoulder|default:'17.0' }}',
-                                            m_chest: '{{ product.m_chest|default:'40.0' }}',
-                                            m_length: '{{ product.m_length|default:'28.0' }}',
-                                            m_shoulder: '{{ product.m_shoulder|default:'17.5' }}',
-                                            l_chest: '{{ product.l_chest|default:'42.0' }}',
-                                            l_length: '{{ product.l_length|default:'29.0' }}',
-                                            l_shoulder: '{{ product.l_shoulder|default:'18.0' }}',
-                                            xl_chest: '{{ product.xl_chest|default:'44.0' }}',
-                                            xl_length: '{{ product.xl_length|default:'30.0' }}',
-                                            xl_shoulder: '{{ product.xl_shoulder|default:'18.5' }}',
-                                            xxl_chest: '{{ product.xxl_chest|default:'46.0' }}',
-                                            xxl_length: '{{ product.xxl_length|default:'31.0' }}',
-                                            xxl_shoulder: '{{ product.xxl_shoulder|default:'19.0' }}'
+                                            s_chest: '{{ product.s_chest|default:'' }}',
+                                            s_length: '{{ product.s_length|default:'' }}',
+                                            s_shoulder: '{{ product.s_shoulder|default:'' }}',
+                                            m_chest: '{{ product.m_chest|default:'' }}',
+                                            m_length: '{{ product.m_length|default:'' }}',
+                                            m_shoulder: '{{ product.m_shoulder|default:'' }}',
+                                            l_chest: '{{ product.l_chest|default:'' }}',
+                                            l_length: '{{ product.l_length|default:'' }}',
+                                            l_shoulder: '{{ product.l_shoulder|default:'' }}',
+                                            xl_chest: '{{ product.xl_chest|default:'' }}',
+                                            xl_length: '{{ product.xl_length|default:'' }}',
+                                            xl_shoulder: '{{ product.xl_shoulder|default:'' }}',
+                                            xxl_chest: '{{ product.xxl_chest|default:'' }}',
+                                            xxl_length: '{{ product.xxl_length|default:'' }}',
+                                            xxl_shoulder: '{{ product.xxl_shoulder|default:'' }}'
                                         })" 
                                         class="p-2 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Edit Product">
                                     <i data-lucide="pencil" class="w-4 h-4"></i>
@@ -785,21 +785,21 @@
                                     profit: '{{ product.expected_profit }}',
                                     margin: '{{ product.profit_margin|floatformat:1 }}',
                                     sold: {{ product.sold_quantity }},
-                                    s_chest: '{{ product.s_chest|default:'38.0' }}',
-                                    s_length: '{{ product.s_length|default:'27.0' }}',
-                                    s_shoulder: '{{ product.s_shoulder|default:'17.0' }}',
-                                    m_chest: '{{ product.m_chest|default:'40.0' }}',
-                                    m_length: '{{ product.m_length|default:'28.0' }}',
-                                    m_shoulder: '{{ product.m_shoulder|default:'17.5' }}',
-                                    l_chest: '{{ product.l_chest|default:'42.0' }}',
-                                    l_length: '{{ product.l_length|default:'29.0' }}',
-                                    l_shoulder: '{{ product.l_shoulder|default:'18.0' }}',
-                                    xl_chest: '{{ product.xl_chest|default:'44.0' }}',
-                                    xl_length: '{{ product.xl_length|default:'30.0' }}',
-                                    xl_shoulder: '{{ product.xl_shoulder|default:'18.5' }}',
-                                    xxl_chest: '{{ product.xxl_chest|default:'46.0' }}',
-                                    xxl_length: '{{ product.xxl_length|default:'31.0' }}',
-                                    xxl_shoulder: '{{ product.xxl_shoulder|default:'19.0' }}'
+                                    s_chest: '{{ product.s_chest|default:'' }}',
+                                    s_length: '{{ product.s_length|default:'' }}',
+                                    s_shoulder: '{{ product.s_shoulder|default:'' }}',
+                                    m_chest: '{{ product.m_chest|default:'' }}',
+                                    m_length: '{{ product.m_length|default:'' }}',
+                                    m_shoulder: '{{ product.m_shoulder|default:'' }}',
+                                    l_chest: '{{ product.l_chest|default:'' }}',
+                                    l_length: '{{ product.l_length|default:'' }}',
+                                    l_shoulder: '{{ product.l_shoulder|default:'' }}',
+                                    xl_chest: '{{ product.xl_chest|default:'' }}',
+                                    xl_length: '{{ product.xl_length|default:'' }}',
+                                    xl_shoulder: '{{ product.xl_shoulder|default:'' }}',
+                                    xxl_chest: '{{ product.xxl_chest|default:'' }}',
+                                    xxl_length: '{{ product.xxl_length|default:'' }}',
+                                    xxl_shoulder: '{{ product.xxl_shoulder|default:'' }}'
                                 })">
                                 <!-- Photo Thumbnail -->
                                 <td class="px-4 py-3">
@@ -912,21 +912,21 @@
                                                     size_l: {{ product.size_l }},
                                                     size_xl: {{ product.size_xl }},
                                                     size_xxl: {{ product.size_xxl }},
-                                                    s_chest: '{{ product.s_chest|default:'38.0' }}',
-                                                    s_length: '{{ product.s_length|default:'27.0' }}',
-                                                    s_shoulder: '{{ product.s_shoulder|default:'17.0' }}',
-                                                    m_chest: '{{ product.m_chest|default:'40.0' }}',
-                                                    m_length: '{{ product.m_length|default:'28.0' }}',
-                                                    m_shoulder: '{{ product.m_shoulder|default:'17.5' }}',
-                                                    l_chest: '{{ product.l_chest|default:'42.0' }}',
-                                                    l_length: '{{ product.l_length|default:'29.0' }}',
-                                                    l_shoulder: '{{ product.l_shoulder|default:'18.0' }}',
-                                                    xl_chest: '{{ product.xl_chest|default:'44.0' }}',
-                                                    xl_length: '{{ product.xl_length|default:'30.0' }}',
-                                                    xl_shoulder: '{{ product.xl_shoulder|default:'18.5' }}',
-                                                    xxl_chest: '{{ product.xxl_chest|default:'46.0' }}',
-                                                    xxl_length: '{{ product.xxl_length|default:'31.0' }}',
-                                                    xxl_shoulder: '{{ product.xxl_shoulder|default:'19.0' }}'
+                                                    s_chest: '{{ product.s_chest|default:'' }}',
+                                                    s_length: '{{ product.s_length|default:'' }}',
+                                                    s_shoulder: '{{ product.s_shoulder|default:'' }}',
+                                                    m_chest: '{{ product.m_chest|default:'' }}',
+                                                    m_length: '{{ product.m_length|default:'' }}',
+                                                    m_shoulder: '{{ product.m_shoulder|default:'' }}',
+                                                    l_chest: '{{ product.l_chest|default:'' }}',
+                                                    l_length: '{{ product.l_length|default:'' }}',
+                                                    l_shoulder: '{{ product.l_shoulder|default:'' }}',
+                                                    xl_chest: '{{ product.xl_chest|default:'' }}',
+                                                    xl_length: '{{ product.xl_length|default:'' }}',
+                                                    xl_shoulder: '{{ product.xl_shoulder|default:'' }}',
+                                                    xxl_chest: '{{ product.xxl_chest|default:'' }}',
+                                                    xxl_length: '{{ product.xxl_length|default:'' }}',
+                                                    xxl_shoulder: '{{ product.xxl_shoulder|default:'' }}'
                                                 })" 
                                                 class="p-1.5 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" title="Edit">
                                             <i data-lucide="pencil" class="w-4 h-4"></i>
@@ -1493,7 +1493,7 @@
                                     <td class="p-1">{{ product_form.xxl_length }}</td>
                                 </tr>
                                 <tr>
-                                    <td class="font-bold text-slate-500 dark:text-slate-400 py-1 text-left">Shoulder</td>
+                                    <td class="font-bold text-slate-500 dark:text-slate-400 py-1 text-left">Sleeves</td>
                                     <td class="p-1">{{ product_form.s_shoulder }}</td>
                                     <td class="p-1">{{ product_form.m_shoulder }}</td>
                                     <td class="p-1">{{ product_form.l_shoulder }}</td>
@@ -1625,27 +1625,27 @@
                             <tbody>
                                 <tr>
                                     <td class="font-bold text-slate-500 dark:text-slate-400 py-1 text-left">Chest</td>
-                                    <td class="p-1"><input type="number" step="0.5" name="s_chest" x-model="editData.s_chest" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
-                                    <td class="p-1"><input type="number" step="0.5" name="m_chest" x-model="editData.m_chest" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
-                                    <td class="p-1"><input type="number" step="0.5" name="l_chest" x-model="editData.l_chest" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
-                                    <td class="p-1"><input type="number" step="0.5" name="xl_chest" x-model="editData.xl_chest" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
-                                    <td class="p-1"><input type="number" step="0.5" name="xxl_chest" x-model="editData.xxl_chest" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" placeholder="-" name="s_chest" x-model="editData.s_chest" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" placeholder="-" name="m_chest" x-model="editData.m_chest" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" placeholder="-" name="l_chest" x-model="editData.l_chest" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" placeholder="-" name="xl_chest" x-model="editData.xl_chest" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" placeholder="-" name="xxl_chest" x-model="editData.xxl_chest" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
                                 </tr>
                                 <tr>
                                     <td class="font-bold text-slate-500 dark:text-slate-400 py-1 text-left">Length</td>
-                                    <td class="p-1"><input type="number" step="0.5" name="s_length" x-model="editData.s_length" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
-                                    <td class="p-1"><input type="number" step="0.5" name="m_length" x-model="editData.m_length" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
-                                    <td class="p-1"><input type="number" step="0.5" name="l_length" x-model="editData.l_length" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
-                                    <td class="p-1"><input type="number" step="0.5" name="xl_length" x-model="editData.xl_length" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
-                                    <td class="p-1"><input type="number" step="0.5" name="xxl_length" x-model="editData.xxl_length" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" placeholder="-" name="s_length" x-model="editData.s_length" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" placeholder="-" name="m_length" x-model="editData.m_length" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" placeholder="-" name="l_length" x-model="editData.l_length" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" placeholder="-" name="xl_length" x-model="editData.xl_length" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" placeholder="-" name="xxl_length" x-model="editData.xxl_length" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
                                 </tr>
                                 <tr>
-                                    <td class="font-bold text-slate-500 dark:text-slate-400 py-1 text-left">Shoulder</td>
-                                    <td class="p-1"><input type="number" step="0.5" name="s_shoulder" x-model="editData.s_shoulder" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
-                                    <td class="p-1"><input type="number" step="0.5" name="m_shoulder" x-model="editData.m_shoulder" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
-                                    <td class="p-1"><input type="number" step="0.5" name="l_shoulder" x-model="editData.l_shoulder" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
-                                    <td class="p-1"><input type="number" step="0.5" name="xl_shoulder" x-model="editData.xl_shoulder" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
-                                    <td class="p-1"><input type="number" step="0.5" name="xxl_shoulder" x-model="editData.xxl_shoulder" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="font-bold text-slate-500 dark:text-slate-400 py-1 text-left">Sleeves</td>
+                                    <td class="p-1"><input type="number" step="0.5" placeholder="-" name="s_shoulder" x-model="editData.s_shoulder" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" placeholder="-" name="m_shoulder" x-model="editData.m_shoulder" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" placeholder="-" name="l_shoulder" x-model="editData.l_shoulder" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" placeholder="-" name="xl_shoulder" x-model="editData.xl_shoulder" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" placeholder="-" name="xxl_shoulder" x-model="editData.xxl_shoulder" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1815,27 +1815,27 @@
                                 <tbody class="divide-y divide-blue-100 dark:divide-slate-800/80 font-mono text-xs">
                                     <tr>
                                         <td class="py-1.5 text-left font-sans font-semibold text-slate-700 dark:text-slate-300">Chest (Round)</td>
-                                        <td class="py-1.5 text-slate-900 dark:text-white font-bold" x-text="previewData.s_chest + '″'"></td>
-                                        <td class="py-1.5 text-slate-900 dark:text-white font-bold" x-text="previewData.m_chest + '″'"></td>
-                                        <td class="py-1.5 text-slate-900 dark:text-white font-bold" x-text="previewData.l_chest + '″'"></td>
-                                        <td class="py-1.5 text-slate-900 dark:text-white font-bold" x-text="previewData.xl_chest + '″'"></td>
-                                        <td class="py-1.5 text-slate-900 dark:text-white font-bold" x-text="previewData.xxl_chest + '″'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white font-bold" x-text="previewData.s_chest ? previewData.s_chest + '″' : '-'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white font-bold" x-text="previewData.m_chest ? previewData.m_chest + '″' : '-'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white font-bold" x-text="previewData.l_chest ? previewData.l_chest + '″' : '-'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white font-bold" x-text="previewData.xl_chest ? previewData.xl_chest + '″' : '-'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white font-bold" x-text="previewData.xxl_chest ? previewData.xxl_chest + '″' : '-'"></td>
                                     </tr>
                                     <tr>
                                         <td class="py-1.5 text-left font-sans font-semibold text-slate-700 dark:text-slate-300">Body Length</td>
-                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.s_length + '″'"></td>
-                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.m_length + '″'"></td>
-                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.l_length + '″'"></td>
-                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.xl_length + '″'"></td>
-                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.xxl_length + '″'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.s_length ? previewData.s_length + '″' : '-'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.m_length ? previewData.m_length + '″' : '-'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.l_length ? previewData.l_length + '″' : '-'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.xl_length ? previewData.xl_length + '″' : '-'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.xxl_length ? previewData.xxl_length + '″' : '-'"></td>
                                     </tr>
                                     <tr>
-                                        <td class="py-1.5 text-left font-sans font-semibold text-slate-700 dark:text-slate-300">Shoulder Width</td>
-                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.s_shoulder + '″'"></td>
-                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.m_shoulder + '″'"></td>
-                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.l_shoulder + '″'"></td>
-                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.xl_shoulder + '″'"></td>
-                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.xxl_shoulder + '″'"></td>
+                                        <td class="py-1.5 text-left font-sans font-semibold text-slate-700 dark:text-slate-300">Sleeves</td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.s_shoulder ? previewData.s_shoulder + '″' : '-'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.m_shoulder ? previewData.m_shoulder + '″' : '-'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.l_shoulder ? previewData.l_shoulder + '″' : '-'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.xl_shoulder ? previewData.xl_shoulder + '″' : '-'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.xxl_shoulder ? previewData.xxl_shoulder + '″' : '-'"></td>
                                     </tr>
                                 </tbody>
                             </table>

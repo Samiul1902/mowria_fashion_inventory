@@ -23,6 +23,7 @@ chart_input_cls = (
     "bg-white dark:bg-slate-900 "
     "border border-slate-300 dark:border-slate-700 "
     "text-slate-800 dark:text-slate-100 "
+    "placeholder-slate-400 dark:placeholder-slate-500 "
     "focus:outline-none focus:ring-1 focus:ring-blue-500"
 )
 
@@ -79,24 +80,24 @@ class ProductForm(forms.ModelForm):
             'size_xl': forms.NumberInput(attrs={'class': size_input_cls, 'min': '0'}),
             'size_xxl': forms.NumberInput(attrs={'class': size_input_cls, 'min': '0'}),
             
-            # Size Chart widgets
-            's_chest': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5'}),
-            's_length': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5'}),
-            's_shoulder': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5'}),
+            # Size Chart widgets (default empty with placeholder '-')
+            's_chest': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5', 'placeholder': '-'}),
+            's_length': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5', 'placeholder': '-'}),
+            's_shoulder': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5', 'placeholder': '-'}),
 
-            'm_chest': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5'}),
-            'm_length': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5'}),
-            'm_shoulder': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5'}),
+            'm_chest': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5', 'placeholder': '-'}),
+            'm_length': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5', 'placeholder': '-'}),
+            'm_shoulder': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5', 'placeholder': '-'}),
 
-            'l_chest': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5'}),
-            'l_length': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5'}),
-            'l_shoulder': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5'}),
+            'l_chest': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5', 'placeholder': '-'}),
+            'l_length': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5', 'placeholder': '-'}),
+            'l_shoulder': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5', 'placeholder': '-'}),
 
-            'xl_chest': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5'}),
-            'xl_length': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5'}),
-            'xl_shoulder': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5'}),
+            'xl_chest': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5', 'placeholder': '-'}),
+            'xl_length': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5', 'placeholder': '-'}),
+            'xl_shoulder': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5', 'placeholder': '-'}),
 
-            'xxl_chest': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5'}),
-            'xxl_length': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5'}),
-            'xxl_shoulder': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5'}),
+            'xxl_chest': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5', 'placeholder': '-'}),
+            'xxl_length': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5', 'placeholder': '-'}),
+            'xxl_shoulder': forms.NumberInput(attrs={'class': chart_input_cls, 'step': '0.5', 'placeholder': '-'}),
         }
