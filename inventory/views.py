@@ -328,14 +328,13 @@ def product_delete(request, pk):
     product = get_object_or_404(Product, pk=pk)
     code = product.code
     name = product.name
-    product.delete()
-    messages.success(request, f"Product '{name}' ({code}) has been deleted.")
     if product.photo:
         try:
             product.photo.delete(save=False)
         except Exception:
             pass
     product.delete()
+    messages.success(request, f"Product '{name}' ({code}) has been deleted.")
     log_activity(
         request, 
         'PRODUCT_DELETED', 
