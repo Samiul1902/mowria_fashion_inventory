@@ -1,12 +1,12 @@
 import json
+import csv
 from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.contrib import messages
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Count
 from .models import Product, StockMovement, UserProfile, ActivityLog
 from .forms import ProductForm
 
@@ -17,14 +17,7 @@ def get_client_ip(request):
     return request.META.get('REMOTE_ADDR')
 
 def get_user_role_context(request):
-    """
-    Returns user role and permission flags:
-    1. Super Admin: Full system control (Add/Edit/Delete products, Adjust stock, View everything)
-    2. Employee: Can only adjust size stock (+ / -), cannot create/edit/delete products
-    3. Viewer: Read-only access to catalog, stock levels, valuations, and availability.
-    """
     if not request.user.is_authenticated:
-        # Unauthenticated guest behaves as Viewer
         return {
             'role': 'VIEWER',
             'role_label': 'Viewer (Guest)',
@@ -47,7 +40,6 @@ def get_user_role_context(request):
             'is_viewer': False,
         }
 
-    # Fetch or create UserProfile
     profile, _ = UserProfile.objects.get_or_create(user=user, defaults={'role': UserProfile.ROLE_VIEWER})
     role = profile.role
 
@@ -84,6 +76,40 @@ def log_activity(request, action, product=None, details=''):
     )
 
 
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    error = None
+    if request.method == 'POST':
+        identifier = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '').strip()
+
+        # Check by email or username
+        username = identifier
+        if '@' in identifier:
+            matched_user = User.objects.filter(email__iexact=identifier).first()
+            if matched_user:
+                username = matched_user.username
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            log_activity(request, 'USER_LOGIN', details=f"User {user.email or user.username} logged in successfully.")
+            return redirect('dashboard')
+        else:
+            error = "Invalid credentials. Please verify your email and password."
+
+    return render(request, 'inventory/login.html', {'error': error})
+
+
+def logout_view(request):
+    if request.user.is_authenticated:
+        log_activity(request, 'USER_LOGOUT', details=f"User {request.user.email or request.user.username} logged out.")
+        logout(request)
+    return redirect('login_view')
+
+
 def dashboard(request):
     query = request.GET.get('q', '').strip()
     category = request.GET.get('category', '').strip()
@@ -92,9 +118,9 @@ def dashboard(request):
 
     products_qs = Product.objects.all().prefetch_related('movements')
 
-    # Filtering
     if query:
         products_qs = products_qs.filter(
+            Q(code__iexact=query) |
             Q(code__icontains=query) |
             Q(name__icontains=query) |
             Q(category__icontains=query) |
@@ -130,9 +156,9 @@ def dashboard(request):
     else:
         product_list.sort(key=lambda p: p.created_at, reverse=True)
 
-    # High-level KPIs across all inventory
-    all_products = Product.objects.all().prefetch_related('movements')
-    total_active_skus = all_products.count()
+    # High-level KPIs & Analytics
+    all_products = list(Product.objects.all().prefetch_related('movements'))
+    total_active_skus = len(all_products)
     total_in_stock_units = sum(p.total_quantity for p in all_products)
     total_stock_value = sum(p.stock_value for p in all_products)
     total_potential_revenue = sum(p.potential_revenue for p in all_products)
@@ -144,19 +170,57 @@ def dashboard(request):
         total=Sum('quantity')
     )['total'] or 0
 
-    # Category counts
+    # Analytics: Overall Margin & Capital ROI
+    overall_avg_margin = (
+        round(((total_potential_revenue - total_stock_value) / total_potential_revenue) * 100, 1)
+        if total_potential_revenue > Decimal('0.00') else 0.0
+    )
+    projected_roi = (
+        round((total_expected_profit / total_stock_value) * 100, 1)
+        if total_stock_value > Decimal('0.00') else 0.0
+    )
+
+    # Analytics: Size Distribution Totals Across Entire Inventory
+    total_s = sum(p.size_s for p in all_products)
+    total_m = sum(p.size_m for p in all_products)
+    total_l = sum(p.size_l for p in all_products)
+    total_xl = sum(p.size_xl for p in all_products)
+    total_xxl = sum(p.size_xxl for p in all_products)
+
+    size_distribution_chart = {
+        's': total_s,
+        'm': total_m,
+        'l': total_l,
+        'xl': total_xl,
+        'xxl': total_xxl,
+    }
+
+    # Analytics: Category Valuation Breakdown
     category_choices = [c[0] for c in Product.CATEGORY_CHOICES]
     category_counts = []
+    category_analytics = []
+
     for cat in category_choices:
-        count = Product.objects.filter(category=cat).count()
+        cat_prods = [p for p in all_products if p.category == cat]
+        cat_count = len(cat_prods)
+        cat_stock = sum(p.total_quantity for p in cat_prods)
+        cat_val = sum(p.stock_value for p in cat_prods)
+
         category_counts.append({
             'name': cat,
-            'count': count
+            'count': cat_count
         })
+        if cat_stock > 0 or cat_count > 0:
+            category_analytics.append({
+                'name': cat,
+                'count': cat_count,
+                'stock': cat_stock,
+                'valuation': float(cat_val),
+            })
 
     product_form = ProductForm()
     user_perm = get_user_role_context(request)
-    recent_activities = ActivityLog.objects.all()[:25]
+    recent_activities = ActivityLog.objects.all()[:10]
 
     context = {
         'products': product_list,
@@ -169,7 +233,11 @@ def dashboard(request):
             'total_expected_profit': total_expected_profit,
             'low_stock_count': low_stock_count,
             'out_of_stock_count': out_of_stock_count,
+            'overall_avg_margin': overall_avg_margin,
+            'projected_roi': projected_roi,
         },
+        'size_distribution': size_distribution_chart,
+        'category_analytics': category_analytics,
         'categories': category_counts,
         'selected_category': category,
         'selected_status': status,
@@ -195,7 +263,7 @@ def product_create(request):
             request, 
             'PRODUCT_CREATED', 
             product=product, 
-            details=f"Created product '{product.name}' with initial stock of {product.total_quantity} units (Cost: ৳{product.unit_cost}, Price: ৳{product.price})"
+            details=f"Created SKU {product.code} - {product.name} with initial stock of {product.total_quantity} units (Wholesale: ৳{product.unit_cost}, Retail: ৳{product.price})"
         )
     return redirect('dashboard')
 
@@ -214,7 +282,7 @@ def product_update(request, pk):
             request, 
             'PRODUCT_UPDATED', 
             product=product, 
-            details=f"Updated product specs: '{product.name}' (Category: {product.category}, Price: ৳{product.price}, Cost: ৳{product.unit_cost})"
+            details=f"Updated product specs: '{product.name}' (Category: {product.category}, Retail: ৳{product.price}, Cost: ৳{product.unit_cost})"
         )
     return redirect('dashboard')
 
@@ -279,14 +347,13 @@ def adjust_size_stock(request, pk):
 
     if new_val < 0:
         return JsonResponse({
-            'success': False,
+            'success': False, 
             'error': 'Stock count cannot be negative.'
         }, status=400)
 
     setattr(product, field_name, new_val)
     product.save(update_fields=[field_name, 'updated_at'])
 
-    # Record Movement & Activity Log
     if delta > 0:
         StockMovement.objects.create(
             product=product,
@@ -333,8 +400,33 @@ def adjust_size_stock(request, pk):
     })
 
 
+def export_inventory_csv(request):
+    """Excel / CSV Export replacing manual sheets"""
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="Mowria_Fashion_Inventory.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'SKU Code', 'Name', 'Category', 'Colour',
+        'Unit Cost (BDT)', 'Retail Price (BDT)',
+        'Size S', 'Size M', 'Size L', 'Size XL', 'Size 2XL',
+        'Total Quantity', 'Stock Valuation (BDT)', 'Potential Revenue (BDT)',
+        'Expected Profit (BDT)', 'Margin %', 'Units Sold', 'Stock Status'
+    ])
+
+    for p in Product.objects.all():
+        writer.writerow([
+            p.code, p.name, p.category, p.colour or '',
+            p.unit_cost, p.price,
+            p.size_s, p.size_m, p.size_l, p.size_xl, p.size_xxl,
+            p.total_quantity, p.stock_value, p.potential_revenue,
+            p.expected_profit, round(p.profit_margin, 1), p.sold_quantity, p.stock_status
+        ])
+
+    return response
+
+
 def activity_log_view(request):
-    """Full-page Activity Log audit trail"""
     logs = ActivityLog.objects.all()[:150]
     user_perm = get_user_role_context(request)
     return render(request, 'inventory/activity_log.html', {
@@ -344,24 +436,20 @@ def activity_log_view(request):
 
 
 def quick_switch_demo_role(request):
-    """
-    Convenient testing helper to seamlessly switch between the 3 roles:
-    1. Super Admin (Full access)
-    2. Employee (Edit stock only)
-    3. Viewer (Read-only)
-    """
     target_role = request.GET.get('role', 'SUPER_ADMIN').upper()
     role_map = {
-        'SUPER_ADMIN': ('demo_admin', UserProfile.ROLE_SUPER_ADMIN, True),
-        'EMPLOYEE': ('demo_employee', UserProfile.ROLE_EMPLOYEE, False),
-        'VIEWER': ('demo_viewer', UserProfile.ROLE_VIEWER, False),
+        'SUPER_ADMIN': ('superadmin@mowriafashion.com', UserProfile.ROLE_SUPER_ADMIN, True),
+        'EMPLOYEE': ('salesrep@mowriafashion.com', UserProfile.ROLE_EMPLOYEE, False),
+        'VIEWER': ('view@mowriafashion.com', UserProfile.ROLE_VIEWER, False),
     }
 
     if target_role not in role_map:
         return redirect('dashboard')
 
-    username, role_const, is_super = role_map[target_role]
-    user, created = User.objects.get_or_create(username=username, defaults={'email': f"{username}@mowriafashion.com"})
+    email, role_const, is_super = role_map[target_role]
+    username = email.split('@')[0]
+    user, _ = User.objects.get_or_create(username=username, defaults={'email': email})
+    user.email = email
     user.is_superuser = is_super
     user.is_staff = is_super
     user.save()

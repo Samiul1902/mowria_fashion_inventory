@@ -34,6 +34,8 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Alpine.js CDN -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- HTML5-QRCode Scanner CDN -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
         [x-cloak] { display: none !important; }
         html { transition: background-color 0.25s ease, color 0.25s ease; }
@@ -65,9 +67,9 @@
                 </div>
             </div>
 
-            <!-- Header Center: Role Badge & Quick Switcher -->
+            <!-- Role Badge & Account Controls -->
             <div class="flex items-center space-x-2">
-                <!-- Role Badge Dropdown -->
+                <!-- Role Status Pill -->
                 <div class="relative" x-data="{ openRoleMenu: false }">
                     <button @click="openRoleMenu = !openRoleMenu"
                             class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition shadow-xs {% if user_perm.is_super_admin %}bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800/60{% elif user_perm.is_employee %}bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800/60{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700{% endif %}">
@@ -76,61 +78,75 @@
                         <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
                     </button>
 
-                    <!-- Dropdown for fast testing of 3 roles -->
+                    <!-- Dropdown for fast testing of 3 roles + Login / Logout -->
                     <div x-show="openRoleMenu" @click.away="openRoleMenu = false" x-cloak
-                         class="absolute right-0 sm:left-0 mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-2 z-50 text-xs space-y-1">
+                         class="absolute right-0 sm:left-0 mt-2 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-2.5 z-50 text-xs space-y-1.5">
                         <div class="px-2.5 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Switch Active Role</div>
                         
                         <!-- Role 1: Super Admin -->
                         <a href="{% url 'switch_role' %}?role=SUPER_ADMIN" 
-                           class="flex items-start space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/80 transition {% if user_perm.is_super_admin %}bg-blue-50/50 dark:bg-slate-800{% endif %}">
+                           class="flex items-start space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition {% if user_perm.is_super_admin %}bg-blue-50/50 dark:bg-slate-800/80{% endif %}">
                             <span class="w-2 h-2 rounded-full bg-rose-500 mt-1"></span>
                             <div>
                                 <div class="font-bold text-slate-900 dark:text-white">1. Super Admin</div>
-                                <div class="text-[11px] text-slate-500 dark:text-slate-400">Can edit full system (Add/Edit/Delete + Stock)</div>
+                                <div class="text-[11px] text-slate-400">superadmin@mowriafashion.com</div>
                             </div>
                         </a>
 
                         <!-- Role 2: Employee -->
                         <a href="{% url 'switch_role' %}?role=EMPLOYEE" 
-                           class="flex items-start space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/80 transition {% if user_perm.is_employee %}bg-blue-50/50 dark:bg-slate-800{% endif %}">
+                           class="flex items-start space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition {% if user_perm.is_employee %}bg-blue-50/50 dark:bg-slate-800/80{% endif %}">
                             <span class="w-2 h-2 rounded-full bg-amber-500 mt-1"></span>
                             <div>
-                                <div class="font-bold text-slate-900 dark:text-white">2. Employee</div>
-                                <div class="text-[11px] text-slate-500 dark:text-slate-400">Only can edit the stock (+ / - steppers)</div>
+                                <div class="font-bold text-slate-900 dark:text-white">2. Employee (Edit Stock Only)</div>
+                                <div class="text-[11px] text-slate-400">salesrep@mowriafashion.com</div>
                             </div>
                         </a>
 
                         <!-- Role 3: Viewer -->
                         <a href="{% url 'switch_role' %}?role=VIEWER" 
-                           class="flex items-start space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/80 transition {% if user_perm.is_viewer %}bg-blue-50/50 dark:bg-slate-800{% endif %}">
+                           class="flex items-start space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition {% if user_perm.is_viewer %}bg-blue-50/50 dark:bg-slate-800/80{% endif %}">
                             <span class="w-2 h-2 rounded-full bg-slate-400 mt-1"></span>
                             <div>
-                                <div class="font-bold text-slate-900 dark:text-white">3. Viewer</div>
-                                <div class="text-[11px] text-slate-500 dark:text-slate-400">Read-only view of products & availabilities</div>
+                                <div class="font-bold text-slate-900 dark:text-white">3. Viewer (Read Only)</div>
+                                <div class="text-[11px] text-slate-400">view@mowriafashion.com</div>
                             </div>
                         </a>
+
+                        <div class="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between px-2">
+                            <a href="{% url 'login_view' %}" class="text-blue-600 dark:text-blue-400 font-semibold hover:underline">Login Page</a>
+                            <a href="{% url 'logout_view' %}" class="text-rose-600 dark:text-rose-400 font-semibold hover:underline">Log Out</a>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Activity Log Link Button -->
                 <a href="{% url 'activity_log' %}" 
-                   class="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition"
+                   class="hidden lg:flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition"
                    title="View System Activity Log">
                     <i data-lucide="history" class="w-3.5 h-3.5 text-blue-500"></i>
                     <span>Activity Log</span>
                 </a>
+
+                <!-- Export CSV (Never need Excel) -->
+                <a href="{% url 'export_inventory_csv' %}" 
+                   class="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200 dark:border-slate-700/80 transition"
+                   title="Export full inventory to CSV/Excel format">
+                    <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-500"></i>
+                    <span>Export CSV</span>
+                </a>
             </div>
 
-            <!-- Header Actions: Theme Switcher, View Switcher & Add Button -->
+            <!-- Header Actions: Barcode Scanner, View Switcher & Add Button -->
             <div class="flex items-center space-x-1.5 sm:space-x-2">
                 
-                <!-- Activity Log Icon on mobile -->
-                <a href="{% url 'activity_log' %}" 
-                   class="md:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700" 
-                   title="Activity Log">
-                    <i data-lucide="history" class="w-4 h-4"></i>
-                </a>
+                <!-- QR & Barcode Scanner Button -->
+                <button @click="openScannerModal()"
+                        class="p-2 sm:px-2.5 sm:py-2 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-700/60 transition flex items-center gap-1.5 shadow-xs"
+                        title="Scan QR or Barcode with Camera">
+                    <i data-lucide="scan-barcode" class="w-4 h-4"></i>
+                    <span class="hidden xl:inline text-xs font-semibold">Scan Barcode</span>
+                </button>
 
                 <!-- Dark / Light Mode Toggle Button -->
                 <button @click="toggleTheme()" 
@@ -181,24 +197,95 @@
     <!-- Main Container -->
     <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8">
 
-        <!-- Role Announcement Banner -->
-        <div class="rounded-2xl p-3 sm:p-4 border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs {% if user_perm.is_super_admin %}bg-rose-500/10 border-rose-500/20 text-rose-800 dark:text-rose-300{% elif user_perm.is_employee %}bg-amber-500/10 border-amber-500/20 text-amber-800 dark:text-amber-300{% else %}bg-blue-500/10 border-blue-500/20 text-blue-800 dark:text-blue-300{% endif %}">
-            <div class="flex items-center space-x-2.5">
-                <i data-lucide="info" class="w-4 h-4 shrink-0"></i>
-                <span>
-                    <strong>Logged in as {{ user_perm.role_label }}:</strong> 
-                    {% if user_perm.is_super_admin %}
-                        You have full system access (Add products, edit details, delete items, adjust stock, and review audit logs).
-                    {% elif user_perm.is_employee %}
-                        You can adjust size stock quantities (+ / - buttons). Product catalogue details and deletions are locked.
-                    {% else %}
-                        Viewer mode active: Read-only access to view garments, availabilities, size breakdown, and valuations.
-                    {% endif %}
-                </span>
+        <!-- ADVANCED ANALYTICS & VISUALIZATION BAR (Eliminating Excel) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <!-- 1. Overall Capital ROI & Margin Metrics -->
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl p-5 shadow-lg flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between text-blue-100 text-xs font-medium">
+                        <span>Commercial Performance</span>
+                        <i data-lucide="sparkles" class="w-4 h-4 text-cyan-300"></i>
+                    </div>
+                    <div class="mt-3">
+                        <div class="text-3xl font-extrabold tracking-tight">{{ kpis.projected_roi }}%</div>
+                        <div class="text-xs text-blue-100 mt-0.5">Projected Capital Return on Investment (ROI)</div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 pt-4 border-t border-white/20 text-xs mt-3">
+                    <div>
+                        <div class="text-blue-200 text-[10px]">Avg Gross Margin</div>
+                        <div class="font-bold text-white text-sm">{{ kpis.overall_avg_margin }}%</div>
+                    </div>
+                    <div>
+                        <div class="text-blue-200 text-[10px]">Potential Profit</div>
+                        <div class="font-bold text-emerald-300 text-sm">৳{{ kpis.total_expected_profit|floatformat:0 }}</div>
+                    </div>
+                </div>
             </div>
-            <div class="flex items-center space-x-2 shrink-0">
-                <a href="{% url 'activity_log' %}" class="underline font-bold hover:opacity-80">View Activity History &rarr;</a>
+
+            <!-- 2. Garment Size Distribution Breakdown Visualizer -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                        <span>Catalog Size Distribution</span>
+                        <span class="text-[11px] font-mono text-blue-600 dark:text-blue-400">{{ kpis.total_in_stock_units }} Units In-Stock</span>
+                    </div>
+                    <div class="grid grid-cols-5 gap-2 text-center mt-3">
+                        <div class="bg-slate-50 dark:bg-slate-800/80 p-2 rounded-xl border border-slate-200 dark:border-slate-700/60">
+                            <span class="text-[10px] text-slate-400 font-bold">S</span>
+                            <div class="text-sm font-bold text-slate-900 dark:text-white mt-1">{{ size_distribution.s }}</div>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-slate-800/80 p-2 rounded-xl border border-slate-200 dark:border-slate-700/60">
+                            <span class="text-[10px] text-slate-400 font-bold">M</span>
+                            <div class="text-sm font-bold text-slate-900 dark:text-white mt-1">{{ size_distribution.m }}</div>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-slate-800/80 p-2 rounded-xl border border-slate-200 dark:border-slate-700/60">
+                            <span class="text-[10px] text-slate-400 font-bold">L</span>
+                            <div class="text-sm font-bold text-slate-900 dark:text-white mt-1">{{ size_distribution.l }}</div>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-slate-800/80 p-2 rounded-xl border border-slate-200 dark:border-slate-700/60">
+                            <span class="text-[10px] text-slate-400 font-bold">XL</span>
+                            <div class="text-sm font-bold text-slate-900 dark:text-white mt-1">{{ size_distribution.xl }}</div>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-slate-800/80 p-2 rounded-xl border border-slate-200 dark:border-slate-700/60">
+                            <span class="text-[10px] text-slate-400 font-bold">2XL</span>
+                            <div class="text-sm font-bold text-slate-900 dark:text-white mt-1">{{ size_distribution.xxl }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-2 text-center">Across all active apparel products in stock</div>
             </div>
+
+            <!-- 3. Category Valuation Share -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold mb-2">
+                        <span>Category Capital Allocation</span>
+                        <a href="{% url 'export_inventory_csv' %}" class="text-[11px] text-blue-600 dark:text-blue-400 font-semibold hover:underline flex items-center gap-1">
+                            <i data-lucide="download" class="w-3 h-3"></i> CSV
+                        </a>
+                    </div>
+                    <div class="space-y-2 max-h-24 overflow-y-auto pr-1">
+                        {% for cat in category_analytics %}
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-700 dark:text-slate-300 font-medium truncate max-w-[130px]">{{ cat.name }}</span>
+                            <div class="text-right">
+                                <span class="font-bold text-slate-900 dark:text-white font-mono">৳{{ cat.valuation|floatformat:0 }}</span>
+                                <span class="text-[10px] text-slate-400 ml-1">({{ cat.stock }} pcs)</span>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-xs text-slate-400 py-3 text-center">No categories populated</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="text-[11px] text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-2 flex items-center justify-between">
+                    <span>Total Valuation:</span>
+                    <strong class="text-amber-600 dark:text-amber-400">৳{{ kpis.total_stock_value|floatformat:0 }}</strong>
+                </div>
+            </div>
+
         </div>
 
         <!-- Top KPI Summary Cards -->
@@ -285,8 +372,9 @@
                     <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
                     <input type="text" 
                            name="q" 
+                           id="main-search-input"
                            value="{{ query }}" 
-                           placeholder="Search SKU code, name, colour, category..." 
+                           placeholder="Search or scan SKU code, name, colour, category..." 
                            class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-10 py-2 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition">
                     {% if query %}
                     <a href="{% url 'dashboard' %}" class="absolute right-3.5 top-2.5 text-slate-400 hover:text-slate-700 dark:hover:text-white p-0.5" title="Clear search">
@@ -343,12 +431,48 @@
             <!-- 1. GRID CARDS VIEW -->
             <div x-show="currentView === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
                 {% for product in products %}
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:border-blue-400 dark:hover:border-slate-700 transition flex flex-col justify-between shadow-xs hover:shadow-md"
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:border-blue-400 dark:hover:border-slate-700 transition flex flex-col justify-between shadow-xs hover:shadow-md cursor-pointer group"
                      id="product-card-{{ product.id }}"
-                     data-product-id="{{ product.id }}">
+                     data-product-id="{{ product.id }}"
+                     @click="openPreviewModal({
+                                id: '{{ product.id }}',
+                                code: '{{ product.code }}',
+                                name: '{{ product.name|escapejs }}',
+                                category: '{{ product.category|escapejs }}',
+                                colour: '{{ product.colour|default:''|escapejs }}',
+                                unit_cost: '{{ product.unit_cost }}',
+                                price: '{{ product.price }}',
+                                photo_url: '{% if product.photo %}{{ product.photo.url }}{% endif %}',
+                                size_s: {{ product.size_s }},
+                                size_m: {{ product.size_m }},
+                                size_l: {{ product.size_l }},
+                                size_xl: {{ product.size_xl }},
+                                size_xxl: {{ product.size_xxl }},
+                                total_qty: {{ product.total_quantity }},
+                                stock_value: '{{ product.stock_value }}',
+                                potential_rev: '{{ product.potential_revenue }}',
+                                profit: '{{ product.expected_profit }}',
+                                margin: '{{ product.profit_margin|floatformat:1 }}',
+                                sold: {{ product.sold_quantity }},
+                                s_chest: '{{ product.s_chest|default:'38.0' }}',
+                                s_length: '{{ product.s_length|default:'27.0' }}',
+                                s_shoulder: '{{ product.s_shoulder|default:'17.0' }}',
+                                m_chest: '{{ product.m_chest|default:'40.0' }}',
+                                m_length: '{{ product.m_length|default:'28.0' }}',
+                                m_shoulder: '{{ product.m_shoulder|default:'17.5' }}',
+                                l_chest: '{{ product.l_chest|default:'42.0' }}',
+                                l_length: '{{ product.l_length|default:'29.0' }}',
+                                l_shoulder: '{{ product.l_shoulder|default:'18.0' }}',
+                                xl_chest: '{{ product.xl_chest|default:'44.0' }}',
+                                xl_length: '{{ product.xl_length|default:'30.0' }}',
+                                xl_shoulder: '{{ product.xl_shoulder|default:'18.5' }}',
+                                xxl_chest: '{{ product.xxl_chest|default:'46.0' }}',
+                                xxl_length: '{{ product.xxl_length|default:'31.0' }}',
+                                xxl_shoulder: '{{ product.xxl_shoulder|default:'19.0' }}'
+                            })">
                     
                     <!-- Top Product Photo & Badges -->
-                    <div class="relative bg-slate-100 dark:bg-slate-950 aspect-[4/3] flex items-center justify-center overflow-hidden group">
+                    <div class="relative bg-slate-100 dark:bg-slate-950 aspect-[4/3] flex items-center justify-center overflow-hidden">
                         {% if product.photo %}
                             <img src="{{ product.photo.url }}" 
                                  alt="{{ product.name }}" 
@@ -387,38 +511,18 @@
                             {% endif %}
                         </div>
 
-                        <!-- Quick Preview Icon overlay -->
-                        <button @click="openPreviewModal({
-                                    id: '{{ product.id }}',
-                                    code: '{{ product.code }}',
-                                    name: '{{ product.name|escapejs }}',
-                                    category: '{{ product.category|escapejs }}',
-                                    colour: '{{ product.colour|default:''|escapejs }}',
-                                    unit_cost: '{{ product.unit_cost }}',
-                                    price: '{{ product.price }}',
-                                    photo_url: '{% if product.photo %}{{ product.photo.url }}{% endif %}',
-                                    size_s: {{ product.size_s }},
-                                    size_m: {{ product.size_m }},
-                                    size_l: {{ product.size_l }},
-                                    size_xl: {{ product.size_xl }},
-                                    size_xxl: {{ product.size_xxl }},
-                                    total_qty: {{ product.total_quantity }},
-                                    stock_value: '{{ product.stock_value }}',
-                                    potential_rev: '{{ product.potential_revenue }}',
-                                    profit: '{{ product.expected_profit }}',
-                                    margin: '{{ product.profit_margin|floatformat:1 }}',
-                                    sold: {{ product.sold_quantity }}
-                                })"
-                                class="absolute bottom-3 right-3 p-2 bg-white/90 dark:bg-slate-900/90 hover:bg-blue-600 dark:hover:bg-blue-600 text-slate-700 dark:text-white hover:text-white rounded-xl opacity-90 sm:opacity-0 group-hover:opacity-100 transition shadow-md">
-                            <i data-lucide="eye" class="w-4 h-4"></i>
-                        </button>
+                        <!-- Card Click-to-preview hint overlay -->
+                        <div class="absolute bottom-3 right-3 px-2 py-1 bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-white rounded-lg text-[10px] font-semibold opacity-80 sm:opacity-0 group-hover:opacity-100 transition shadow flex items-center gap-1">
+                            <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                            <span>View Specs & Chart</span>
+                        </div>
                     </div>
 
                     <!-- Product Body Content -->
                     <div class="p-4 sm:p-5 space-y-4 flex-1 flex flex-col justify-between">
                         <div>
                             <div class="flex items-start justify-between gap-2">
-                                <h2 class="text-base font-bold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition leading-snug">{{ product.name }}</h2>
+                                <h2 class="text-base font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition leading-snug">{{ product.name }}</h2>
                                 {% if product.colour %}
                                 <span class="text-xs px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700/60 whitespace-nowrap">
                                     {{ product.colour }}
@@ -442,7 +546,7 @@
                         </div>
 
                         <!-- Size Matrix Stepper Controls (S - XXL) -->
-                        <div class="bg-slate-50 dark:bg-slate-950/70 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80 space-y-2">
+                        <div class="bg-slate-50 dark:bg-slate-950/70 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80 space-y-2" @click.stop>
                             <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                                 <span class="font-semibold text-slate-700 dark:text-slate-300">Garment Sizes</span>
                                 <span>Total: <strong class="text-slate-900 dark:text-white text-sm" id="card-total-{{ product.id }}">{{ product.total_quantity }}</strong></span>
@@ -522,37 +626,11 @@
                         </div>
 
                         <!-- Card Footer Financials & Actions -->
-                        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs" @click.stop>
                             <div class="text-slate-500 dark:text-slate-400">
                                 Stock Val: <span class="text-amber-600 dark:text-amber-400 font-semibold" id="card-val-{{ product.id }}">৳{{ product.stock_value|floatformat:0 }}</span>
                             </div>
                             <div class="flex items-center space-x-1">
-                                <!-- Preview button (Available to all) -->
-                                <button @click="openPreviewModal({
-                                            id: '{{ product.id }}',
-                                            code: '{{ product.code }}',
-                                            name: '{{ product.name|escapejs }}',
-                                            category: '{{ product.category|escapejs }}',
-                                            colour: '{{ product.colour|default:''|escapejs }}',
-                                            unit_cost: '{{ product.unit_cost }}',
-                                            price: '{{ product.price }}',
-                                            photo_url: '{% if product.photo %}{{ product.photo.url }}{% endif %}',
-                                            size_s: {{ product.size_s }},
-                                            size_m: {{ product.size_m }},
-                                            size_l: {{ product.size_l }},
-                                            size_xl: {{ product.size_xl }},
-                                            size_xxl: {{ product.size_xxl }},
-                                            total_qty: {{ product.total_quantity }},
-                                            stock_value: '{{ product.stock_value }}',
-                                            potential_rev: '{{ product.potential_revenue }}',
-                                            profit: '{{ product.expected_profit }}',
-                                            margin: '{{ product.profit_margin|floatformat:1 }}',
-                                            sold: {{ product.sold_quantity }}
-                                        })" 
-                                        class="p-2 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Full Preview">
-                                    <i data-lucide="eye" class="w-4 h-4"></i>
-                                </button>
-                                
                                 <!-- Edit & Delete buttons (Only Super Admin) -->
                                 {% if user_perm.can_manage_products %}
                                 <button @click="openEditModal({
@@ -567,7 +645,22 @@
                                             size_m: {{ product.size_m }},
                                             size_l: {{ product.size_l }},
                                             size_xl: {{ product.size_xl }},
-                                            size_xxl: {{ product.size_xxl }}
+                                            size_xxl: {{ product.size_xxl }},
+                                            s_chest: '{{ product.s_chest|default:'38.0' }}',
+                                            s_length: '{{ product.s_length|default:'27.0' }}',
+                                            s_shoulder: '{{ product.s_shoulder|default:'17.0' }}',
+                                            m_chest: '{{ product.m_chest|default:'40.0' }}',
+                                            m_length: '{{ product.m_length|default:'28.0' }}',
+                                            m_shoulder: '{{ product.m_shoulder|default:'17.5' }}',
+                                            l_chest: '{{ product.l_chest|default:'42.0' }}',
+                                            l_length: '{{ product.l_length|default:'29.0' }}',
+                                            l_shoulder: '{{ product.l_shoulder|default:'18.0' }}',
+                                            xl_chest: '{{ product.xl_chest|default:'44.0' }}',
+                                            xl_length: '{{ product.xl_length|default:'30.0' }}',
+                                            xl_shoulder: '{{ product.xl_shoulder|default:'18.5' }}',
+                                            xxl_chest: '{{ product.xxl_chest|default:'46.0' }}',
+                                            xxl_length: '{{ product.xxl_length|default:'31.0' }}',
+                                            xxl_shoulder: '{{ product.xxl_shoulder|default:'19.0' }}'
                                         })" 
                                         class="p-2 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Edit Product">
                                     <i data-lucide="pencil" class="w-4 h-4"></i>
@@ -606,7 +699,43 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                             {% for product in products %}
-                            <tr class="hover:bg-blue-50/50 dark:hover:bg-slate-800/40 transition">
+                            <tr class="hover:bg-blue-50/50 dark:hover:bg-slate-800/40 transition cursor-pointer"
+                                @click="openPreviewModal({
+                                    id: '{{ product.id }}',
+                                    code: '{{ product.code }}',
+                                    name: '{{ product.name|escapejs }}',
+                                    category: '{{ product.category|escapejs }}',
+                                    colour: '{{ product.colour|default:''|escapejs }}',
+                                    unit_cost: '{{ product.unit_cost }}',
+                                    price: '{{ product.price }}',
+                                    photo_url: '{% if product.photo %}{{ product.photo.url }}{% endif %}',
+                                    size_s: {{ product.size_s }},
+                                    size_m: {{ product.size_m }},
+                                    size_l: {{ product.size_l }},
+                                    size_xl: {{ product.size_xl }},
+                                    size_xxl: {{ product.size_xxl }},
+                                    total_qty: {{ product.total_quantity }},
+                                    stock_value: '{{ product.stock_value }}',
+                                    potential_rev: '{{ product.potential_revenue }}',
+                                    profit: '{{ product.expected_profit }}',
+                                    margin: '{{ product.profit_margin|floatformat:1 }}',
+                                    sold: {{ product.sold_quantity }},
+                                    s_chest: '{{ product.s_chest|default:'38.0' }}',
+                                    s_length: '{{ product.s_length|default:'27.0' }}',
+                                    s_shoulder: '{{ product.s_shoulder|default:'17.0' }}',
+                                    m_chest: '{{ product.m_chest|default:'40.0' }}',
+                                    m_length: '{{ product.m_length|default:'28.0' }}',
+                                    m_shoulder: '{{ product.m_shoulder|default:'17.5' }}',
+                                    l_chest: '{{ product.l_chest|default:'42.0' }}',
+                                    l_length: '{{ product.l_length|default:'29.0' }}',
+                                    l_shoulder: '{{ product.l_shoulder|default:'18.0' }}',
+                                    xl_chest: '{{ product.xl_chest|default:'44.0' }}',
+                                    xl_length: '{{ product.xl_length|default:'30.0' }}',
+                                    xl_shoulder: '{{ product.xl_shoulder|default:'18.5' }}',
+                                    xxl_chest: '{{ product.xxl_chest|default:'46.0' }}',
+                                    xxl_length: '{{ product.xxl_length|default:'31.0' }}',
+                                    xxl_shoulder: '{{ product.xxl_shoulder|default:'19.0' }}'
+                                })">
                                 <!-- Photo Thumbnail -->
                                 <td class="px-4 py-3">
                                     <div class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 overflow-hidden flex items-center justify-center">
@@ -687,33 +816,8 @@
                                 </td>
 
                                 <!-- Action buttons -->
-                                <td class="px-4 py-3 text-right whitespace-nowrap">
+                                <td class="px-4 py-3 text-right whitespace-nowrap" @click.stop>
                                     <div class="flex items-center justify-end space-x-1">
-                                        <button @click="openPreviewModal({
-                                                    id: '{{ product.id }}',
-                                                    code: '{{ product.code }}',
-                                                    name: '{{ product.name|escapejs }}',
-                                                    category: '{{ product.category|escapejs }}',
-                                                    colour: '{{ product.colour|default:''|escapejs }}',
-                                                    unit_cost: '{{ product.unit_cost }}',
-                                                    price: '{{ product.price }}',
-                                                    photo_url: '{% if product.photo %}{{ product.photo.url }}{% endif %}',
-                                                    size_s: {{ product.size_s }},
-                                                    size_m: {{ product.size_m }},
-                                                    size_l: {{ product.size_l }},
-                                                    size_xl: {{ product.size_xl }},
-                                                    size_xxl: {{ product.size_xxl }},
-                                                    total_qty: {{ product.total_quantity }},
-                                                    stock_value: '{{ product.stock_value }}',
-                                                    potential_rev: '{{ product.potential_revenue }}',
-                                                    profit: '{{ product.expected_profit }}',
-                                                    margin: '{{ product.profit_margin|floatformat:1 }}',
-                                                    sold: {{ product.sold_quantity }}
-                                                })" 
-                                                class="p-1.5 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" title="Preview">
-                                            <i data-lucide="eye" class="w-4 h-4"></i>
-                                        </button>
-                                        
                                         {% if user_perm.can_manage_products %}
                                         <button @click="openEditModal({
                                                     id: '{{ product.id }}',
@@ -727,7 +831,22 @@
                                                     size_m: {{ product.size_m }},
                                                     size_l: {{ product.size_l }},
                                                     size_xl: {{ product.size_xl }},
-                                                    size_xxl: {{ product.size_xxl }}
+                                                    size_xxl: {{ product.size_xxl }},
+                                                    s_chest: '{{ product.s_chest|default:'38.0' }}',
+                                                    s_length: '{{ product.s_length|default:'27.0' }}',
+                                                    s_shoulder: '{{ product.s_shoulder|default:'17.0' }}',
+                                                    m_chest: '{{ product.m_chest|default:'40.0' }}',
+                                                    m_length: '{{ product.m_length|default:'28.0' }}',
+                                                    m_shoulder: '{{ product.m_shoulder|default:'17.5' }}',
+                                                    l_chest: '{{ product.l_chest|default:'42.0' }}',
+                                                    l_length: '{{ product.l_length|default:'29.0' }}',
+                                                    l_shoulder: '{{ product.l_shoulder|default:'18.0' }}',
+                                                    xl_chest: '{{ product.xl_chest|default:'44.0' }}',
+                                                    xl_length: '{{ product.xl_length|default:'30.0' }}',
+                                                    xl_shoulder: '{{ product.xl_shoulder|default:'18.5' }}',
+                                                    xxl_chest: '{{ product.xxl_chest|default:'46.0' }}',
+                                                    xxl_length: '{{ product.xxl_length|default:'31.0' }}',
+                                                    xxl_shoulder: '{{ product.xxl_shoulder|default:'19.0' }}'
                                                 })" 
                                                 class="p-1.5 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" title="Edit">
                                             <i data-lucide="pencil" class="w-4 h-4"></i>
@@ -780,6 +899,35 @@
 
     <!-- ==================== MODALS ==================== -->
 
+    <!-- QR & BARCODE SCANNER MODAL -->
+    <div x-show="showScannerModal" x-cloak 
+         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl p-5 space-y-4"
+             @click.away="closeScannerModal()">
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                <div class="flex items-center space-x-2 text-blue-600 dark:text-blue-400 font-bold">
+                    <i data-lucide="scan-line" class="w-5 h-5"></i>
+                    <span>Live QR & Barcode Scanner</span>
+                </div>
+                <button @click="closeScannerModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <p class="text-xs text-slate-500 dark:text-slate-400">Point your camera at a garment tag barcode or product QR code to instantly search or view it:</p>
+            
+            <!-- Scanner Video Container -->
+            <div id="reader" class="w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-950 min-h-[260px]"></div>
+
+            <div class="text-center pt-2">
+                <button @click="closeScannerModal()" class="px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Cancel Scan
+                </button>
+            </div>
+        </div>
+    </div>
+
+
     {% if user_perm.can_manage_products %}
     <!-- 1. ADD PRODUCT MODAL (Super Admin Only) -->
     <div x-show="showAddModal" x-cloak 
@@ -829,13 +977,25 @@
                     </div>
                 </div>
 
+                <!-- Product Photo (File picker + Mobile Camera Access) -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Garment Photo</label>
-                    <div class="bg-slate-50 dark:bg-slate-950 border border-dashed border-slate-300 dark:border-slate-800 rounded-xl p-3">
-                        {{ product_form.photo }}
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Garment Photo (Local Disk or Mobile Camera)</label>
+                    <div class="bg-slate-50 dark:bg-slate-950 border border-dashed border-slate-300 dark:border-slate-800 rounded-xl p-3.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                        <div class="flex-1">
+                            <input type="file" name="photo" id="add-photo-input" accept="image/*"
+                                   class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
+                        </div>
+                        <label for="add-photo-camera" class="cursor-pointer inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-blue-50 text-slate-700 dark:text-slate-300 hover:text-blue-600 rounded-xl text-xs font-semibold transition border border-slate-300 dark:border-slate-700 shrink-0">
+                            <i data-lucide="camera" class="w-4 h-4 text-blue-500"></i>
+                            <span>Take Photo</span>
+                        </label>
+                        <!-- Mobile Camera Trigger with capture="environment" -->
+                        <input type="file" id="add-photo-camera" accept="image/*" capture="environment" class="hidden" 
+                               onchange="document.getElementById('add-photo-input').files = this.files">
                     </div>
                 </div>
 
+                <!-- Initial Size Stock Matrix -->
                 <div class="bg-slate-50 dark:bg-slate-950/80 p-4 rounded-xl border border-slate-200 dark:border-slate-800/80">
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">Initial Size Quantities</label>
                     <div class="grid grid-cols-5 gap-2 text-center">
@@ -859,6 +1019,55 @@
                             <span class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">2XL</span>
                             {{ product_form.size_xxl }}
                         </div>
+                    </div>
+                </div>
+
+                <!-- Garment Size Chart Specifications Matrix (Inches) -->
+                <div class="bg-slate-50 dark:bg-slate-950/80 p-4 rounded-xl border border-slate-200 dark:border-slate-800/80 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Cloth Size Chart Specifications (Inches)</label>
+                        <span class="text-[10px] text-blue-500 font-mono">Customizable</span>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-center text-xs">
+                            <thead class="text-[11px] text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800">
+                                <tr>
+                                    <th class="py-1">Dimension</th>
+                                    <th class="py-1">S</th>
+                                    <th class="py-1">M</th>
+                                    <th class="py-1">L</th>
+                                    <th class="py-1">XL</th>
+                                    <th class="py-1">2XL</th>
+                                </tr>
+                            </thead>
+                            <tbody class="space-y-1">
+                                <tr>
+                                    <td class="font-bold text-slate-500 dark:text-slate-400 py-1 text-left">Chest</td>
+                                    <td class="p-1">{{ product_form.s_chest }}</td>
+                                    <td class="p-1">{{ product_form.m_chest }}</td>
+                                    <td class="p-1">{{ product_form.l_chest }}</td>
+                                    <td class="p-1">{{ product_form.xl_chest }}</td>
+                                    <td class="p-1">{{ product_form.xxl_chest }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-bold text-slate-500 dark:text-slate-400 py-1 text-left">Length</td>
+                                    <td class="p-1">{{ product_form.s_length }}</td>
+                                    <td class="p-1">{{ product_form.m_length }}</td>
+                                    <td class="p-1">{{ product_form.l_length }}</td>
+                                    <td class="p-1">{{ product_form.xl_length }}</td>
+                                    <td class="p-1">{{ product_form.xxl_length }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-bold text-slate-500 dark:text-slate-400 py-1 text-left">Shoulder</td>
+                                    <td class="p-1">{{ product_form.s_shoulder }}</td>
+                                    <td class="p-1">{{ product_form.m_shoulder }}</td>
+                                    <td class="p-1">{{ product_form.l_shoulder }}</td>
+                                    <td class="p-1">{{ product_form.xl_shoulder }}</td>
+                                    <td class="p-1">{{ product_form.xxl_shoulder }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -927,13 +1136,23 @@
                     </div>
                 </div>
 
+                <!-- Replace Photo (Disk or Camera) -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Replace Photo (Optional)</label>
-                    <div class="bg-slate-50 dark:bg-slate-950 border border-dashed border-slate-300 dark:border-slate-800 rounded-xl p-3">
-                        <input type="file" name="photo" accept="image/*" class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Replace Photo (Optional - Disk or Camera)</label>
+                    <div class="bg-slate-50 dark:bg-slate-950 border border-dashed border-slate-300 dark:border-slate-800 rounded-xl p-3.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                        <div class="flex-1">
+                            <input type="file" name="photo" id="edit-photo-input" accept="image/*" class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer">
+                        </div>
+                        <label for="edit-photo-camera" class="cursor-pointer inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-blue-50 text-slate-700 dark:text-slate-300 hover:text-blue-600 rounded-xl text-xs font-semibold transition border border-slate-300 dark:border-slate-700 shrink-0">
+                            <i data-lucide="camera" class="w-4 h-4 text-blue-500"></i>
+                            <span>Take Photo</span>
+                        </label>
+                        <input type="file" id="edit-photo-camera" accept="image/*" capture="environment" class="hidden" 
+                               onchange="document.getElementById('edit-photo-input').files = this.files">
                     </div>
                 </div>
 
+                <!-- Size Stock Matrix -->
                 <div class="bg-slate-50 dark:bg-slate-950/80 p-4 rounded-xl border border-slate-200 dark:border-slate-800/80">
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">Size Quantities Matrix</label>
                     <div class="grid grid-cols-5 gap-2 text-center">
@@ -957,6 +1176,51 @@
                             <span class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">2XL</span>
                             <input type="number" min="0" name="size_xxl" x-model="editData.size_xxl" class="w-full px-2 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-center text-slate-900 dark:text-white text-sm font-bold">
                         </div>
+                    </div>
+                </div>
+
+                <!-- Size Chart Matrix (Edit) -->
+                <div class="bg-slate-50 dark:bg-slate-950/80 p-4 rounded-xl border border-slate-200 dark:border-slate-800/80 space-y-2">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Garment Size Chart Specs (Inches)</label>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-center text-xs">
+                            <thead class="text-[11px] text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800">
+                                <tr>
+                                    <th class="py-1">Dim</th>
+                                    <th class="py-1">S</th>
+                                    <th class="py-1">M</th>
+                                    <th class="py-1">L</th>
+                                    <th class="py-1">XL</th>
+                                    <th class="py-1">2XL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="font-bold text-slate-500 dark:text-slate-400 py-1 text-left">Chest</td>
+                                    <td class="p-1"><input type="number" step="0.5" name="s_chest" x-model="editData.s_chest" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" name="m_chest" x-model="editData.m_chest" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" name="l_chest" x-model="editData.l_chest" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" name="xl_chest" x-model="editData.xl_chest" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" name="xxl_chest" x-model="editData.xxl_chest" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                </tr>
+                                <tr>
+                                    <td class="font-bold text-slate-500 dark:text-slate-400 py-1 text-left">Length</td>
+                                    <td class="p-1"><input type="number" step="0.5" name="s_length" x-model="editData.s_length" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" name="m_length" x-model="editData.m_length" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" name="l_length" x-model="editData.l_length" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" name="xl_length" x-model="editData.xl_length" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" name="xxl_length" x-model="editData.xxl_length" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                </tr>
+                                <tr>
+                                    <td class="font-bold text-slate-500 dark:text-slate-400 py-1 text-left">Shoulder</td>
+                                    <td class="p-1"><input type="number" step="0.5" name="s_shoulder" x-model="editData.s_shoulder" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" name="m_shoulder" x-model="editData.m_shoulder" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" name="l_shoulder" x-model="editData.l_shoulder" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" name="xl_shoulder" x-model="editData.xl_shoulder" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                    <td class="p-1"><input type="number" step="0.5" name="xxl_shoulder" x-model="editData.xxl_shoulder" class="w-full px-1 py-1 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-center text-xs"></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -1006,15 +1270,16 @@
     {% endif %}
 
 
-    <!-- 3. PRODUCT PREVIEW MODAL (Available to All Roles) -->
+    <!-- 3. COMPREHENSIVE PRODUCT PREVIEW MODAL WITH CLOTH SIZE CHART (Pop-up on card click) -->
     <div x-show="showPreviewModal" x-cloak 
          class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl transition transform my-6 sm:my-8"
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-4xl overflow-hidden shadow-2xl transition transform my-6 sm:my-8"
              @click.away="showPreviewModal = false">
             
+            <!-- Modal Header -->
             <div class="px-5 sm:px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <span class="font-mono text-xs uppercase px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700" x-text="previewData.code"></span>
+                <div class="flex items-center space-x-2.5">
+                    <span class="font-mono text-xs uppercase px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 font-bold" x-text="previewData.code"></span>
                     <h3 class="text-base font-bold text-slate-900 dark:text-white" x-text="previewData.name"></h3>
                 </div>
                 <button @click="showPreviewModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg">
@@ -1022,88 +1287,139 @@
                 </button>
             </div>
 
-            <div class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
-                <!-- Large Garment Image -->
-                <div class="bg-slate-100 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex items-center justify-center aspect-square shadow-inner">
+            <div class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-6">
+                <!-- Large Garment Photo -->
+                <div class="md:col-span-5 bg-slate-100 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex items-center justify-center aspect-square shadow-inner">
                     <template x-if="previewData.photo_url">
                         <img :src="previewData.photo_url" :alt="previewData.name" class="w-full h-full object-cover">
                     </template>
                     <template x-if="!previewData.photo_url">
                         <div class="flex flex-col items-center justify-center text-slate-300 dark:text-slate-700">
-                            <i data-lucide="shirt" class="w-20 h-20 stroke-1"></i>
-                            <span class="text-xs text-slate-400 dark:text-slate-600 mt-2 font-mono">No Image Uploaded</span>
+                            <i data-lucide="shirt" class="w-24 h-24 stroke-1"></i>
+                            <span class="text-xs text-slate-400 dark:text-slate-600 mt-2 font-mono">No Photo Uploaded</span>
                         </div>
                     </template>
                 </div>
 
-                <!-- Financial & Size Breakdown -->
-                <div class="space-y-4 sm:space-y-5 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs text-slate-500 dark:text-slate-400">Category: <strong class="text-slate-800 dark:text-slate-200" x-text="previewData.category"></strong></span>
-                            <template x-if="previewData.colour">
-                                <span class="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700" x-text="previewData.colour"></span>
-                            </template>
-                        </div>
+                <!-- Complete Product Info & Size Chart -->
+                <div class="md:col-span-7 space-y-4">
+                    
+                    <!-- Basic Specs -->
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-slate-500 dark:text-slate-400">Category: <strong class="text-slate-800 dark:text-slate-200" x-text="previewData.category"></strong></span>
+                        <template x-if="previewData.colour">
+                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium" x-text="'Colour: ' + previewData.colour"></span>
+                        </template>
+                    </div>
 
-                        <!-- Pricing & Margin Breakdown -->
-                        <div class="grid grid-cols-2 gap-2.5 sm:gap-3 mt-3">
-                            <div class="bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
-                                <div class="text-[11px] text-slate-500 dark:text-slate-400">Retail Price</div>
-                                <div class="text-lg font-bold text-slate-900 dark:text-white">৳<span x-text="previewData.price"></span></div>
-                            </div>
-                            <div class="bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
-                                <div class="text-[11px] text-slate-500 dark:text-slate-400">Wholesale Cost</div>
-                                <div class="text-lg font-bold text-slate-700 dark:text-slate-300">৳<span x-text="previewData.unit_cost"></span></div>
-                            </div>
-                            <div class="bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
-                                <div class="text-[11px] text-slate-500 dark:text-slate-400">Stock Valuation</div>
-                                <div class="text-lg font-bold text-amber-600 dark:text-amber-400">৳<span x-text="previewData.stock_value"></span></div>
-                            </div>
-                            <div class="bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
-                                <div class="text-[11px] text-slate-500 dark:text-slate-400">Expected Profit</div>
-                                <div class="text-lg font-bold text-emerald-600 dark:text-emerald-400">৳<span x-text="previewData.profit"></span></div>
-                            </div>
+                    <!-- Financial & Valuation Cards -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <div class="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <div class="text-[10px] text-slate-400">Retail Price</div>
+                            <div class="text-base font-bold text-slate-900 dark:text-white">৳<span x-text="previewData.price"></span></div>
                         </div>
-
-                        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mt-3 px-1">
-                            <span>Profit Margin: <strong class="text-blue-600 dark:text-blue-400" x-text="previewData.margin + '%'"></strong></span>
-                            <span>Historical Sales: <strong class="text-indigo-600 dark:text-indigo-400" x-text="previewData.sold + ' units'"></strong></span>
+                        <div class="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <div class="text-[10px] text-slate-400">Cost Price</div>
+                            <div class="text-base font-bold text-slate-700 dark:text-slate-300">৳<span x-text="previewData.unit_cost"></span></div>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <div class="text-[10px] text-slate-400">Stock Value</div>
+                            <div class="text-base font-bold text-amber-600 dark:text-amber-400">৳<span x-text="previewData.stock_value"></span></div>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <div class="text-[10px] text-slate-400">Margin / Units Sold</div>
+                            <div class="text-base font-bold text-emerald-600 dark:text-emerald-400"><span x-text="previewData.margin"></span>% <span class="text-[10px] text-slate-400 font-normal">(<span x-text="previewData.sold"></span> sold)</span></div>
                         </div>
                     </div>
 
-                    <!-- Size Breakdown Table -->
-                    <div class="bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
-                        <div class="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">Available Size Stock Breakdown</div>
+                    <!-- Available Stock Distribution By Size -->
+                    <div class="bg-slate-50 dark:bg-slate-950 p-3 rounded-2xl border border-slate-200 dark:border-slate-800">
+                        <div class="text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
+                            <span>In-Stock Quantities</span>
+                            <span class="text-blue-600 dark:text-blue-400 font-mono">Total: <strong x-text="previewData.total_qty"></strong> pcs</span>
+                        </div>
                         <div class="grid grid-cols-5 gap-1.5 text-center">
-                            <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+                            <div class="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                                 <div class="text-[10px] text-slate-400 font-bold">S</div>
-                                <div class="text-base font-bold text-slate-900 dark:text-white mt-1" x-text="previewData.size_s"></div>
+                                <div class="text-sm font-bold text-slate-900 dark:text-white" x-text="previewData.size_s"></div>
                             </div>
-                            <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+                            <div class="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                                 <div class="text-[10px] text-slate-400 font-bold">M</div>
-                                <div class="text-base font-bold text-slate-900 dark:text-white mt-1" x-text="previewData.size_m"></div>
+                                <div class="text-sm font-bold text-slate-900 dark:text-white" x-text="previewData.size_m"></div>
                             </div>
-                            <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+                            <div class="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                                 <div class="text-[10px] text-slate-400 font-bold">L</div>
-                                <div class="text-base font-bold text-slate-900 dark:text-white mt-1" x-text="previewData.size_l"></div>
+                                <div class="text-sm font-bold text-slate-900 dark:text-white" x-text="previewData.size_l"></div>
                             </div>
-                            <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+                            <div class="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                                 <div class="text-[10px] text-slate-400 font-bold">XL</div>
-                                <div class="text-base font-bold text-slate-900 dark:text-white mt-1" x-text="previewData.size_xl"></div>
+                                <div class="text-sm font-bold text-slate-900 dark:text-white" x-text="previewData.size_xl"></div>
                             </div>
-                            <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+                            <div class="p-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                                 <div class="text-[10px] text-slate-400 font-bold">2XL</div>
-                                <div class="text-base font-bold text-slate-900 dark:text-white mt-1" x-text="previewData.size_xxl"></div>
+                                <div class="text-sm font-bold text-slate-900 dark:text-white" x-text="previewData.size_xxl"></div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- GARMENT CLOTH SIZE CHART (Inches) -->
+                    <div class="bg-blue-50/50 dark:bg-slate-950 p-3.5 rounded-2xl border border-blue-100 dark:border-slate-800 space-y-2">
+                        <div class="flex items-center justify-between text-xs font-bold text-blue-900 dark:text-blue-300">
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="ruler" class="w-4 h-4 text-blue-500"></i>
+                                <span>Official Garment Size Chart (Inches)</span>
+                            </div>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-mono">Standard Fit</span>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-center text-xs">
+                                <thead class="text-[10px] uppercase font-bold text-slate-400 border-b border-blue-200 dark:border-slate-800">
+                                    <tr>
+                                        <th class="py-1 text-left">Measurement</th>
+                                        <th class="py-1">S</th>
+                                        <th class="py-1">M</th>
+                                        <th class="py-1">L</th>
+                                        <th class="py-1">XL</th>
+                                        <th class="py-1">2XL</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-blue-100 dark:divide-slate-800/80 font-mono text-xs">
+                                    <tr>
+                                        <td class="py-1.5 text-left font-sans font-semibold text-slate-700 dark:text-slate-300">Chest (Round)</td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white font-bold" x-text="previewData.s_chest + '″'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white font-bold" x-text="previewData.m_chest + '″'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white font-bold" x-text="previewData.l_chest + '″'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white font-bold" x-text="previewData.xl_chest + '″'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white font-bold" x-text="previewData.xxl_chest + '″'"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1.5 text-left font-sans font-semibold text-slate-700 dark:text-slate-300">Body Length</td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.s_length + '″'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.m_length + '″'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.l_length + '″'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.xl_length + '″'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.xxl_length + '″'"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1.5 text-left font-sans font-semibold text-slate-700 dark:text-slate-300">Shoulder Width</td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.s_shoulder + '″'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.m_shoulder + '″'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.l_shoulder + '″'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.xl_shoulder + '″'"></td>
+                                        <td class="py-1.5 text-slate-900 dark:text-white" x-text="previewData.xxl_shoulder + '″'"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
                     <div class="pt-2 text-right">
                         <button @click="showPreviewModal = false" class="px-5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs sm:text-sm font-semibold rounded-xl transition">
-                            Close Preview
+                            Close Card
                         </button>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -1134,6 +1450,8 @@
                 showEditModal: false,
                 showPreviewModal: false,
                 showDeleteModal: false,
+                showScannerModal: false,
+                html5QrCodeScanner: null,
                 
                 editData: {},
                 previewData: {},
@@ -1157,6 +1475,48 @@
                         localStorage.setItem('theme', 'light');
                     }
                     this.$nextTick(() => lucide.createIcons());
+                },
+
+                openScannerModal() {
+                    this.showScannerModal = true;
+                    this.$nextTick(() => {
+                        lucide.createIcons();
+                        try {
+                            this.html5QrCodeScanner = new Html5Qrcode("reader");
+                            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+                            this.html5QrCodeScanner.start(
+                                { facingMode: "environment" }, 
+                                config, 
+                                (decodedText) => {
+                                    // Found a barcode or QR code
+                                    this.closeScannerModal();
+                                    const searchInput = document.getElementById('main-search-input');
+                                    if (searchInput) {
+                                        searchInput.value = decodedText;
+                                        document.getElementById('filter-form').submit();
+                                    }
+                                },
+                                (errorMessage) => {
+                                    // Scan error/no code in frame, continue scanning
+                                }
+                            ).catch(err => {
+                                console.warn("Camera start warning:", err);
+                            });
+                        } catch (e) {
+                            console.error("Scanner init error:", e);
+                        }
+                    });
+                },
+
+                closeScannerModal() {
+                    if (this.html5QrCodeScanner) {
+                        try {
+                            this.html5QrCodeScanner.stop().then(() => {
+                                this.html5QrCodeScanner.clear();
+                            });
+                        } catch (e) {}
+                    }
+                    this.showScannerModal = false;
                 },
 
                 openAddModal() {
