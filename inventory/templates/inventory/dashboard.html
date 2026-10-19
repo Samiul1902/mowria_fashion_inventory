@@ -47,9 +47,14 @@
     <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 shadow-xs">
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
             
-            <!-- Brand -->
-            <div class="flex items-center space-x-2.5 sm:space-x-3">
-                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-blue-700 via-blue-600 to-cyan-400 flex items-center justify-center shadow-md shadow-blue-500/25">
+            <!-- Brand & Mobile Menu Drawer Toggle -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <!-- Mobile Navigation Drawer Toggle Button -->
+                <button @click="showMobileSidebar = true" class="lg:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Open Navigation Menu">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-blue-700 via-blue-600 to-cyan-400 flex items-center justify-center shadow-md shadow-blue-500/25 shrink-0">
                     <i data-lucide="shirt" class="w-5 h-5 text-white"></i>
                 </div>
                 <div>
@@ -234,8 +239,8 @@
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-6 sm:space-y-8">
+    <!-- Main Container (pb-24 on mobile ensures bottom navigation bar never overlaps content) -->
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-5 pb-24 sm:py-8 space-y-6 sm:space-y-8">
 
         <!-- ADVANCED ANALYTICS & VISUALIZATION BAR (Eliminating Excel) -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1078,16 +1083,168 @@
 
     </main>
 
-    <!-- MOBILE FLOATING ACTION BUTTON (Super Admin Only) -->
-    {% if user_perm.can_manage_products %}
-    <div class="fixed bottom-6 right-6 z-30 sm:hidden">
-        <button @click="openAddModal()" 
-                class="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-4 py-3 rounded-2xl shadow-xl shadow-blue-500/40 text-xs font-bold transition transform active:scale-90 border border-blue-400/30">
-            <i data-lucide="plus-circle" class="w-5 h-5"></i>
-            <span>Add Product</span>
-        </button>
+    <!-- MOBILE APPLICATION SLIDE-OUT SIDEBAR DRAWER -->
+    <div x-show="showMobileSidebar" x-cloak class="relative z-50 lg:hidden">
+        <!-- Backdrop Overlay -->
+        <div x-show="showMobileSidebar" 
+             x-transition:enter="transition-opacity ease-linear duration-300" 
+             x-transition:enter-start="opacity-0" 
+             x-transition:enter-end="opacity-100" 
+             x-transition:leave="transition-opacity ease-linear duration-300" 
+             x-transition:leave-start="opacity-100" 
+             x-transition:leave-end="opacity-0" 
+             @click="showMobileSidebar = false" 
+             class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs"></div>
+
+        <!-- Sliding Drawer Panel -->
+        <div class="fixed inset-y-0 left-0 flex max-w-xs w-full">
+            <div x-show="showMobileSidebar" 
+                 x-transition:enter="transition ease-in-out duration-300 transform" 
+                 x-transition:enter-start="-translate-x-full" 
+                 x-transition:enter-end="translate-x-0" 
+                 x-transition:leave="transition ease-in-out duration-300 transform" 
+                 x-transition:leave-start="translate-x-0" 
+                 x-transition:leave-end="-translate-x-full" 
+                 class="relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl p-5 space-y-6">
+                
+                <!-- Drawer Header -->
+                <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/25">
+                            <i data-lucide="shirt" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-900 dark:text-white leading-tight">Mowria Fashion</div>
+                            <div class="text-[10px] text-slate-400">Inventory Hub</div>
+                        </div>
+                    </div>
+                    <button @click="showMobileSidebar = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- User Profile Mini-Widget -->
+                <div class="p-3 bg-slate-50 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800/80 flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+                        {% if user_perm.avatar_url %}
+                            <img src="{{ user_perm.avatar_url }}" alt="avatar" class="w-full h-full object-cover">
+                        {% else %}
+                            <span>{{ user_perm.display_name|slice:":1"|upper }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="font-bold text-slate-900 dark:text-white text-xs truncate">{{ user_perm.display_name }}</div>
+                        <div class="text-[10px] text-slate-400 truncate">{{ user_perm.email }}</div>
+                        <span class="inline-block px-2 py-0.5 mt-1 rounded text-[9px] font-mono font-bold {% if user_perm.is_super_admin %}bg-rose-500/10 text-rose-500 border border-rose-500/20{% elif user_perm.is_employee %}bg-amber-500/10 text-amber-500 border border-amber-500/20{% else %}bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400{% endif %}">
+                            {{ user_perm.role_label }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Drawer Navigation Links -->
+                <nav class="space-y-1.5 flex-1">
+                    <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700/60">
+                        <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                        <span>Dashboard Overview</span>
+                    </a>
+
+                    <a href="{% url 'activity_log' %}" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                        <i data-lucide="history" class="w-4 h-4 text-indigo-500"></i>
+                        <span>Activity & Audit Trail</span>
+                    </a>
+
+                    {% if user_perm.can_adjust_stock %}
+                    <button @click="showMobileSidebar = false; openSaleModal()" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-xs text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition text-left">
+                        <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                        <span>Record Customer Sale</span>
+                    </button>
+
+                    <button @click="showMobileSidebar = false; openReturnModal()" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-xs text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition text-left">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                        <span>Process Product Return</span>
+                    </button>
+                    {% endif %}
+
+                    {% if user_perm.can_manage_products %}
+                    <button @click="showMobileSidebar = false; openAddModal()" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition text-left">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>Add New Garment SKU</span>
+                    </button>
+                    {% endif %}
+
+                    <button @click="showMobileSidebar = false; openScannerModal()" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-left">
+                        <i data-lucide="scan-barcode" class="w-4 h-4 text-cyan-500"></i>
+                        <span>QR & Barcode Scanner</span>
+                    </button>
+
+                    <a href="{% url 'export_inventory_csv' %}" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-500"></i>
+                        <span>Export Full CSV (Excel)</span>
+                    </a>
+
+                    <button @click="showMobileSidebar = false; openProfileModal()" class="w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-left">
+                        <i data-lucide="user-cog" class="w-4 h-4 text-blue-500"></i>
+                        <span>Edit Account Profile</span>
+                    </button>
+                </nav>
+
+                <!-- Drawer Bottom Logout -->
+                <div class="pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <a href="{% url 'logout_view' %}" class="flex items-center space-x-2.5 px-3.5 py-2.5 rounded-xl font-bold text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                        <span>Sign Out Session</span>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
-    {% endif %}
+
+    <!-- MOBILE APPLICATION DOCK / BOTTOM NAVIGATION BAR -->
+    <div class="fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 sm:hidden px-3 py-2">
+        <div class="flex items-center justify-around">
+            <!-- 1. Dashboard -->
+            <a href="{% url 'dashboard' %}" class="flex flex-col items-center text-blue-600 dark:text-blue-400 py-1 px-2">
+                <i data-lucide="layout-grid" class="w-5 h-5"></i>
+                <span class="text-[10px] font-bold mt-0.5">Home</span>
+            </a>
+
+            <!-- 2. QR/Barcode Scanner -->
+            <button @click="openScannerModal()" class="flex flex-col items-center text-slate-500 dark:text-slate-400 hover:text-blue-600 py-1 px-2">
+                <i data-lucide="scan-barcode" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium mt-0.5">Scan</span>
+            </button>
+
+            <!-- 3. Record Sale (Prominent center button) -->
+            {% if user_perm.can_adjust_stock %}
+            <button @click="openSaleModal()" class="w-12 h-12 -mt-5 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/40 border-2 border-white dark:border-slate-900 active:scale-95 transition" title="Record Sale">
+                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+            </button>
+            {% else %}
+            <button @click="openAddModal()" class="w-12 h-12 -mt-5 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/40 border-2 border-white dark:border-slate-900 active:scale-95 transition">
+                <i data-lucide="plus" class="w-5 h-5"></i>
+            </button>
+            {% endif %}
+
+            <!-- 4. Customer Return -->
+            {% if user_perm.can_adjust_stock %}
+            <button @click="openReturnModal()" class="flex flex-col items-center text-slate-500 dark:text-slate-400 hover:text-amber-500 py-1 px-2">
+                <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium mt-0.5">Return</span>
+            </button>
+            {% else %}
+            <a href="{% url 'activity_log' %}" class="flex flex-col items-center text-slate-500 dark:text-slate-400 hover:text-blue-600 py-1 px-2">
+                <i data-lucide="history" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium mt-0.5">Audit</span>
+            </a>
+            {% endif %}
+
+            <!-- 5. User Menu / More -->
+            <button @click="showMobileSidebar = true" class="flex flex-col items-center text-slate-500 dark:text-slate-400 hover:text-blue-600 py-1 px-2">
+                <i data-lucide="menu" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium mt-0.5">More</span>
+            </button>
+        </div>
+    </div>
 
     <!-- ==================== MODALS ==================== -->
 
@@ -1362,18 +1519,32 @@
 
                 <!-- Product Photo (File picker + Mobile Camera Access) -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Garment Photo (Local Disk or Mobile Camera)</label>
-                    <div class="bg-slate-50 dark:bg-slate-950 border border-dashed border-slate-300 dark:border-slate-800 rounded-xl p-3.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                        <div class="flex-1">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Garment Photo (Local Storage or Mobile Camera)</label>
+                    <div class="bg-slate-50 dark:bg-slate-950 border border-dashed border-slate-300 dark:border-slate-800 rounded-xl p-3 sm:p-4 space-y-3">
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                             <input type="file" name="photo" id="add-photo-input" accept="image/*"
                                    class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
-                            <div id="add-photo-input-status" class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1"></div>
+                            
+                            <!-- Action Buttons: 1. Native Camera Trigger, 2. In-Browser Webcam Viewfinder -->
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <!-- Native Mobile Camera Button (Works on all mobile devices & non-HTTPS) -->
+                                <label for="add-photo-native-cam" class="cursor-pointer inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 text-emerald-600 dark:text-emerald-400 rounded-xl text-xs font-semibold transition border border-emerald-200 dark:border-emerald-800">
+                                    <i data-lucide="camera" class="w-4 h-4"></i>
+                                    <span>Take Photo</span>
+                                </label>
+                                <input type="file" id="add-photo-native-cam" accept="image/*" capture="environment" class="hidden"
+                                       onchange="if(this.files.length){ document.getElementById('add-photo-input').files = this.files; document.getElementById('add-photo-input-status').innerText = 'Photo captured: ' + this.files[0].name; }">
+
+                                <!-- In-Browser Live Webcam Stream (For Desktop / Webcams) -->
+                                <button type="button" @click="openCamera('add-photo-input')" 
+                                        class="cursor-pointer inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl text-xs font-semibold transition border border-blue-200 dark:border-blue-700/60"
+                                        title="Live viewfinder webcam stream">
+                                    <i data-lucide="video" class="w-4 h-4"></i>
+                                    <span>Webcam</span>
+                                </button>
+                            </div>
                         </div>
-                        <button type="button" @click="openCamera('add-photo-input')" 
-                                class="cursor-pointer inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl text-xs font-semibold transition border border-blue-200 dark:border-blue-700/60 shrink-0">
-                            <i data-lucide="camera" class="w-4 h-4"></i>
-                            <span>Open Camera</span>
-                        </button>
+                        <div id="add-photo-input-status" class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium"></div>
                     </div>
                 </div>
 
@@ -1520,17 +1691,29 @@
 
                 <!-- Replace Photo (Disk or Camera) -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Replace Photo (Optional - Disk or Camera)</label>
-                    <div class="bg-slate-50 dark:bg-slate-950 border border-dashed border-slate-300 dark:border-slate-800 rounded-xl p-3.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                        <div class="flex-1">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Replace Photo (Optional - Local Storage or Mobile Camera)</label>
+                    <div class="bg-slate-50 dark:bg-slate-950 border border-dashed border-slate-300 dark:border-slate-800 rounded-xl p-3 sm:p-4 space-y-3">
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                             <input type="file" name="photo" id="edit-photo-input" accept="image/*" class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer">
-                            <div id="edit-photo-input-status" class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1"></div>
+                            
+                            <!-- Action Buttons: 1. Native Camera Trigger, 2. In-Browser Webcam Viewfinder -->
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <label for="edit-photo-native-cam" class="cursor-pointer inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 text-emerald-600 dark:text-emerald-400 rounded-xl text-xs font-semibold transition border border-emerald-200 dark:border-emerald-800">
+                                    <i data-lucide="camera" class="w-4 h-4"></i>
+                                    <span>Take Photo</span>
+                                </label>
+                                <input type="file" id="edit-photo-native-cam" accept="image/*" capture="environment" class="hidden"
+                                       onchange="if(this.files.length){ document.getElementById('edit-photo-input').files = this.files; document.getElementById('edit-photo-input-status').innerText = 'Photo captured: ' + this.files[0].name; }">
+
+                                <button type="button" @click="openCamera('edit-photo-input')" 
+                                        class="cursor-pointer inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl text-xs font-semibold transition border border-blue-200 dark:border-blue-700/60"
+                                        title="Live viewfinder webcam stream">
+                                    <i data-lucide="video" class="w-4 h-4"></i>
+                                    <span>Webcam</span>
+                                </button>
+                            </div>
                         </div>
-                        <button type="button" @click="openCamera('edit-photo-input')" 
-                                class="cursor-pointer inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl text-xs font-semibold transition border border-blue-200 dark:border-blue-700/60 shrink-0">
-                            <i data-lucide="camera" class="w-4 h-4"></i>
-                            <span>Open Camera</span>
-                        </button>
+                        <div id="edit-photo-input-status" class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium"></div>
                     </div>
                 </div>
 

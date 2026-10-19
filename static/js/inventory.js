@@ -27,6 +27,7 @@ function inventoryApp() {
         showDeleteModal: false,
         showScannerModal: false,
         showProfileModal: false,
+        showMobileSidebar: false,
         html5QrCodeScanner: null,
 
         editData: {},
