@@ -972,41 +972,6 @@
             </div>
         {% endif %}
 
-        <!-- COMPACT RECENT TRANSACTIONS STRIP (Decluttered, full ledger on Sales Tracker page) -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                    <i data-lucide="receipt" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <div class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <span>Sales Tracker & Customer Returns</span>
-                        <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 font-bold">Ledger</span>
-                    </div>
-                    <div class="text-xs text-slate-400 mt-0.5">
-                        Track orders, returns, and inventory stock flow chronologically in the dedicated transaction journal.
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex items-center space-x-2 w-full sm:w-auto">
-                {% if user_perm.can_adjust_stock %}
-                <button type="button" @click="openSaleModal()" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition flex items-center justify-center gap-1.5">
-                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                    <span>Record Sale</span>
-                </button>
-                <button type="button" @click="openReturnModal()" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white shadow-xs transition flex items-center justify-center gap-1.5">
-                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-                    <span>Customer Return</span>
-                </button>
-                {% endif %}
-                <a href="{% url 'sales_tracker' %}" class="flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700 transition flex items-center justify-center gap-1.5">
-                    <span>Open Full Ledger</span>
-                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-                </a>
-            </div>
-        </div>
-
     </main>
 
     <!-- APPLICATION SLIDE-OUT SIDEBAR DRAWER (Accessible on Desktop & Mobile) -->
