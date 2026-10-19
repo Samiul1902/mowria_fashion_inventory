@@ -3,7 +3,7 @@ services:
     name: mowria-fashion-inventory
     runtime: python
     buildCommand: ./build.sh
-    startCommand: gunicorn Mowria_Inventory_Manage.wsgi:application
+    startCommand: python start.py
     plan: free
     envVars:
       - key: SECRET_KEY

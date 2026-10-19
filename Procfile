@@ -1,2 +1,2 @@
-web: gunicorn Mowria_Inventory_Manage.wsgi:application
+web: python start.py
 
