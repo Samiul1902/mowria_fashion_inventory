@@ -64,3 +64,4 @@ class ProductForm(forms.ModelForm):
                 'min': '0'
             }),
         }
+
