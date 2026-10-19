@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: mowria-fashion-inventory
+    runtime: python
+    buildCommand: ./build.sh
+    startCommand: gunicorn Mowria_Inventory_Manage.wsgi:application
+    plan: free
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_n83DHRJQdxkm@ep-crimson-hall-b4827ktg-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require
+      - key: CLOUDINARY_CLOUD_NAME
+        value: hmfgynty
+      - key: CLOUDINARY_API_KEY
+        value: jCOtwOAxMn5MW1zeeV9vCNAU8Dc
+      - key: CLOUDINARY_API_SECRET
+        sync: false
