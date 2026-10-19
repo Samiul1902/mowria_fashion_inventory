@@ -610,3 +610,41 @@ def activity_log_view(request):
         'logs': logs,
         'user_perm': user_perm
     })
+
+
+def sales_tracker_view(request):
+    if not request.user.is_authenticated:
+        return redirect('login_view')
+
+    user_perm = get_user_role_context(request)
+    filter_type = request.GET.get('type', '').strip().upper()
+    
+    movements_qs = StockMovement.objects.filter(
+        movement_type__in=['SALE', 'RETURN']
+    ).select_related('product')
+
+    if filter_type in ['SALE', 'RETURN']:
+        movements_qs = movements_qs.filter(movement_type=filter_type)
+
+    transactions = movements_qs.order_by('-timestamp')[:200]
+
+    # Analytics metrics for the tracker page
+    sales_qs = StockMovement.objects.filter(movement_type='SALE')
+    return_qs = StockMovement.objects.filter(movement_type='RETURN')
+
+    total_units_sold = sales_qs.aggregate(total=Sum('quantity'))['total'] or 0
+    total_sales_revenue = sales_qs.aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
+    total_units_returned = return_qs.aggregate(total=Sum('quantity'))['total'] or 0
+    total_return_amount = return_qs.aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
+    net_sales_revenue = total_sales_revenue - total_return_amount
+
+    return render(request, 'inventory/sales_tracker.html', {
+        'transactions': transactions,
+        'user_perm': user_perm,
+        'filter_type': filter_type,
+        'total_units_sold': total_units_sold,
+        'total_sales_revenue': total_sales_revenue,
+        'total_units_returned': total_units_returned,
+        'total_return_amount': total_return_amount,
+        'net_sales_revenue': net_sales_revenue,
+    })

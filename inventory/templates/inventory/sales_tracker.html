@@ -1,0 +1,328 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" :class="{ 'dark': darkMode }">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sales Tracker & Returns Ledger - Mowria Fashion (MFB)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                            950: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Alpine.js CDN -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- External Stylesheet -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen font-sans antialiased selection:bg-blue-600 selection:text-white transition-colors duration-200"
+      x-data="{
+          darkMode: localStorage.getItem('mfb_theme') === 'dark',
+          showMobileSidebar: false,
+          toggleTheme() {
+              this.darkMode = !this.darkMode;
+              localStorage.setItem('mfb_theme', this.darkMode ? 'dark' : 'light');
+              if (this.darkMode) {
+                  document.documentElement.classList.add('dark');
+              } else {
+                  document.documentElement.classList.remove('dark');
+              }
+          },
+          init() {
+              if (this.darkMode) {
+                  document.documentElement.classList.add('dark');
+              }
+              this.$nextTick(() => {
+                  lucide.createIcons();
+              });
+          }
+      }">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 shadow-xs">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
+            
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <!-- Mobile Drawer Toggle -->
+                <button @click="showMobileSidebar = true" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Open Navigation Drawer">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-500/25 shrink-0">
+                    <i data-lucide="receipt" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5 sm:gap-2">
+                        <h1 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white">Sales & Returns Ledger</h1>
+                        <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">Live Audit</span>
+                    </div>
+                    <p class="hidden sm:block text-xs text-slate-500 dark:text-slate-400">Order transactions & customer product return flow</p>
+                </div>
+            </div>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center space-x-2">
+                <!-- Theme Toggle -->
+                <button @click="toggleTheme()" 
+                        class="p-2 sm:px-2.5 sm:py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition flex items-center justify-center gap-1.5 shadow-xs"
+                        :title="darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+                    <span x-show="darkMode" class="flex items-center">
+                        <i data-lucide="sun" class="w-4 h-4 text-amber-400"></i>
+                    </span>
+                    <span x-show="!darkMode" class="flex items-center">
+                        <i data-lucide="moon" class="w-4 h-4 text-blue-600"></i>
+                    </span>
+                </button>
+
+                <!-- Back to Catalog Dashboard -->
+                <a href="{% url 'dashboard' %}" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition flex items-center gap-1.5">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-5 pb-24 sm:py-8 space-y-6">
+
+        <!-- KPI Metrics Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+            <!-- 1. Total Units Sold -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+                <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
+                    <span class="text-xs font-semibold">Total Sold</span>
+                    <i data-lucide="shopping-bag" class="w-4 h-4 text-emerald-500"></i>
+                </div>
+                <div class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">{{ total_units_sold }} <span class="text-xs font-normal">pcs</span></div>
+                <div class="text-[11px] text-slate-400 mt-0.5">Gross units shipped</div>
+            </div>
+
+            <!-- 2. Gross Revenue -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+                <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
+                    <span class="text-xs font-semibold">Gross Revenue</span>
+                    <i data-lucide="trending-up" class="w-4 h-4 text-blue-500"></i>
+                </div>
+                <div class="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">৳{{ total_sales_revenue|floatformat:0 }}</div>
+                <div class="text-[11px] text-slate-400 mt-0.5">Before returns deduction</div>
+            </div>
+
+            <!-- 3. Customer Returns -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+                <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
+                    <span class="text-xs font-semibold">Returns Refunded</span>
+                    <i data-lucide="rotate-ccw" class="w-4 h-4 text-amber-500"></i>
+                </div>
+                <div class="text-xl sm:text-2xl font-bold text-amber-600 dark:text-amber-400">{{ total_units_returned }} pcs</div>
+                <div class="text-[11px] text-slate-400 mt-0.5">৳{{ total_return_amount|floatformat:0 }} refunded</div>
+            </div>
+
+            <!-- 4. Net Revenue -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+                <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
+                    <span class="text-xs font-semibold">Net Realized Revenue</span>
+                    <i data-lucide="wallet" class="w-4 h-4 text-emerald-600"></i>
+                </div>
+                <div class="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">৳{{ net_sales_revenue|floatformat:0 }}</div>
+                <div class="text-[11px] text-slate-400 mt-0.5">Realized net cash flow</div>
+            </div>
+        </div>
+
+        <!-- Filter & Ledger Table -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs space-y-0">
+            <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-950/40">
+                <div>
+                    <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Transaction Chronology</h2>
+                    <p class="text-xs text-slate-400">Showing recent 200 sales and return movements with audit timestamps</p>
+                </div>
+
+                <!-- Filter Buttons -->
+                <div class="flex items-center space-x-1.5">
+                    <a href="{% url 'sales_tracker' %}" class="px-3 py-1.5 rounded-xl text-xs font-semibold {% if not filter_type %}bg-blue-600 text-white shadow-xs{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200{% endif %} transition">
+                        All
+                    </a>
+                    <a href="{% url 'sales_tracker' %}?type=SALE" class="px-3 py-1.5 rounded-xl text-xs font-semibold {% if filter_type == 'SALE' %}bg-emerald-600 text-white shadow-xs{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200{% endif %} transition">
+                        Sales Only
+                    </a>
+                    <a href="{% url 'sales_tracker' %}?type=RETURN" class="px-3 py-1.5 rounded-xl text-xs font-semibold {% if filter_type == 'RETURN' %}bg-amber-600 text-white shadow-xs{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200{% endif %} transition">
+                        Returns Only
+                    </a>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+                    <thead class="bg-slate-100/70 dark:bg-slate-950/70 text-[11px] uppercase font-semibold text-slate-400 tracking-wider border-b border-slate-200 dark:border-slate-800">
+                        <tr>
+                            <th class="px-4 py-3 whitespace-nowrap">Timestamp</th>
+                            <th class="px-4 py-3 whitespace-nowrap">Transaction Type</th>
+                            <th class="px-4 py-3 whitespace-nowrap">Product / SKU</th>
+                            <th class="px-4 py-3 text-center whitespace-nowrap">Size</th>
+                            <th class="px-4 py-3 text-center whitespace-nowrap">Qty</th>
+                            <th class="px-4 py-3 text-right whitespace-nowrap">Unit Price</th>
+                            <th class="px-4 py-3 text-right whitespace-nowrap">Total Amount</th>
+                            <th class="px-4 py-3 whitespace-nowrap">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 font-sans">
+                        {% for tx in transactions %}
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                            <td class="px-4 py-3 whitespace-nowrap text-xs text-slate-400 font-mono">
+                                {{ tx.timestamp|date:"M d, H:i" }}
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                {% if tx.movement_type == 'SALE' %}
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                                        <i data-lucide="arrow-up-right" class="w-3 h-3"></i> Sale Out
+                                    </span>
+                                {% elif tx.movement_type == 'RETURN' %}
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Customer Return
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                                        {{ tx.get_movement_type_display }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <div class="font-bold text-slate-900 dark:text-white">{{ tx.product.code }}</div>
+                                <div class="text-[11px] text-slate-400 truncate max-w-[150px]">{{ tx.product.name }}</div>
+                            </td>
+                            <td class="px-4 py-3 text-center whitespace-nowrap font-mono font-bold">
+                                <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">{{ tx.size }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-center whitespace-nowrap font-bold">
+                                {% if tx.movement_type == 'SALE' %}
+                                    <span class="text-rose-500">-{{ tx.quantity }}</span>
+                                {% elif tx.movement_type == 'RETURN' %}
+                                    <span class="text-emerald-500">+{{ tx.quantity }}</span>
+                                {% else %}
+                                    <span>{{ tx.quantity }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-right whitespace-nowrap font-mono text-slate-600 dark:text-slate-300">
+                                ৳{{ tx.unit_price|floatformat:0 }}
+                            </td>
+                            <td class="px-4 py-3 text-right whitespace-nowrap font-mono font-bold">
+                                {% if tx.movement_type == 'SALE' %}
+                                    <span class="text-emerald-600 dark:text-emerald-400">+৳{{ tx.total_amount|floatformat:0 }}</span>
+                                {% elif tx.movement_type == 'RETURN' %}
+                                    <span class="text-amber-600 dark:text-amber-400">-৳{{ tx.total_amount|floatformat:0 }}</span>
+                                {% else %}
+                                    <span>৳{{ tx.total_amount|floatformat:0 }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-slate-500 dark:text-slate-400 text-xs truncate max-w-[200px]">
+                                {{ tx.notes|default:"-" }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="px-5 py-8 text-center text-xs text-slate-400">
+                                No transaction records found for this view.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- SLIDE-OUT SIDEBAR DRAWER -->
+    <div x-show="showMobileSidebar" x-cloak class="relative z-50">
+        <div x-show="showMobileSidebar" 
+             x-transition:enter="transition-opacity ease-linear duration-300" 
+             x-transition:enter-start="opacity-0" 
+             x-transition:enter-end="opacity-100" 
+             x-transition:leave="transition-opacity ease-linear duration-300" 
+             x-transition:leave-start="opacity-100" 
+             x-transition:leave-end="opacity-0" 
+             @click="showMobileSidebar = false" 
+             class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs"></div>
+
+        <div class="fixed inset-y-0 left-0 flex max-w-xs w-full">
+            <div x-show="showMobileSidebar" 
+                 x-transition:enter="transition ease-in-out duration-300 transform" 
+                 x-transition:enter-start="-translate-x-full" 
+                 x-transition:enter-end="translate-x-0" 
+                 x-transition:leave="transition ease-in-out duration-300 transform" 
+                 x-transition:leave-start="translate-x-0" 
+                 x-transition:leave-end="-translate-x-full" 
+                 class="relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl p-5 space-y-6">
+                
+                <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/25">
+                            <i data-lucide="shirt" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-900 dark:text-white leading-tight">Mowria Fashion</div>
+                            <div class="text-[10px] text-slate-400">Inventory Hub</div>
+                        </div>
+                    </div>
+                    <button @click="showMobileSidebar = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="space-y-1.5 flex-1">
+                    <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                        <i data-lucide="layout-grid" class="w-4 h-4 text-blue-500"></i>
+                        <span>Dashboard (Products)</span>
+                    </a>
+
+                    <a href="{% url 'sales_tracker' %}" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-700/60">
+                        <i data-lucide="receipt" class="w-4 h-4"></i>
+                        <span>Sales Tracker & Returns</span>
+                    </a>
+
+                    <a href="{% url 'activity_log' %}" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                        <i data-lucide="history" class="w-4 h-4 text-indigo-500"></i>
+                        <span>Activity & Audit Trail</span>
+                    </a>
+
+                    <a href="{% url 'export_inventory_csv' %}" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-500"></i>
+                        <span>Export Inventory CSV</span>
+                    </a>
+                </nav>
+
+                <div class="pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <a href="{% url 'logout_view' %}" class="flex items-center space-x-2.5 px-3.5 py-2.5 rounded-xl font-bold text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                        <span>Sign Out Session</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -47,10 +47,10 @@
     <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 shadow-xs">
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
             
-            <!-- Brand & Mobile Menu Drawer Toggle -->
+            <!-- Brand & Sidebar Menu Drawer Toggle -->
             <div class="flex items-center space-x-2 sm:space-x-3">
-                <!-- Mobile Navigation Drawer Toggle Button -->
-                <button @click="showMobileSidebar = true" class="lg:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Open Navigation Menu">
+                <!-- Navigation Drawer Toggle Button (Desktop & Mobile) -->
+                <button @click="showMobileSidebar = true" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Open Navigation Menu">
                     <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
 
@@ -972,119 +972,45 @@
             </div>
         {% endif %}
 
-        <!-- LIVE SALES TRACKER & CUSTOMER RETURN AUDIT LEDGER -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs space-y-0">
-            <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-950/40">
-                <div class="flex items-center space-x-3">
-                    <div class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                        <i data-lucide="receipt" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <span>Live Sales Tracker & Customer Returns Ledger</span>
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">Real-Time</span>
-                        </h2>
-                        <p class="text-xs text-slate-400">Chronological transaction feed of garment sales, customer returns, and inventory stock flow</p>
-                    </div>
+        <!-- COMPACT RECENT TRANSACTIONS STRIP (Decluttered, full ledger on Sales Tracker page) -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                    <i data-lucide="receipt" class="w-5 h-5"></i>
                 </div>
-
-                <div class="flex items-center space-x-2 w-full sm:w-auto">
-                    {% if user_perm.can_adjust_stock %}
-                    <button type="button" @click="openSaleModal()" class="flex-1 sm:flex-none px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition flex items-center justify-center gap-1.5">
-                        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                        <span>New Sale</span>
-                    </button>
-                    <button type="button" @click="openReturnModal()" class="flex-1 sm:flex-none px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white shadow-xs transition flex items-center justify-center gap-1.5">
-                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-                        <span>Customer Return</span>
-                    </button>
-                    {% endif %}
+                <div>
+                    <div class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span>Sales Tracker & Customer Returns</span>
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 font-bold">Ledger</span>
+                    </div>
+                    <div class="text-xs text-slate-400 mt-0.5">
+                        Track orders, returns, and inventory stock flow chronologically in the dedicated transaction journal.
+                    </div>
                 </div>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs sm:text-sm text-slate-700 dark:text-slate-300">
-                    <thead class="bg-slate-100/70 dark:bg-slate-950/70 text-[11px] uppercase font-semibold text-slate-400 tracking-wider border-b border-slate-200 dark:border-slate-800">
-                        <tr>
-                            <th class="px-4 py-3 whitespace-nowrap">Timestamp</th>
-                            <th class="px-4 py-3 whitespace-nowrap">Transaction Type</th>
-                            <th class="px-4 py-3 whitespace-nowrap">Product / SKU</th>
-                            <th class="px-4 py-3 text-center whitespace-nowrap">Size</th>
-                            <th class="px-4 py-3 text-center whitespace-nowrap">Qty</th>
-                            <th class="px-4 py-3 text-right whitespace-nowrap">Unit Price</th>
-                            <th class="px-4 py-3 text-right whitespace-nowrap">Total Amount</th>
-                            <th class="px-4 py-3 whitespace-nowrap">Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 font-sans">
-                        {% for tx in recent_transactions %}
-                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                            <td class="px-4 py-3 whitespace-nowrap text-xs text-slate-400 font-mono">
-                                {{ tx.timestamp|date:"M d, H:i" }}
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap">
-                                {% if tx.movement_type == 'SALE' %}
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                                        <i data-lucide="arrow-up-right" class="w-3 h-3"></i> Sale Out
-                                    </span>
-                                {% elif tx.movement_type == 'RETURN' %}
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
-                                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Customer Return
-                                    </span>
-                                {% else %}
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
-                                        {{ tx.get_movement_type_display }}
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap">
-                                <div class="font-bold text-slate-900 dark:text-white">{{ tx.product.code }}</div>
-                                <div class="text-[11px] text-slate-400 truncate max-w-[150px]">{{ tx.product.name }}</div>
-                            </td>
-                            <td class="px-4 py-3 text-center whitespace-nowrap font-mono font-bold">
-                                <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">{{ tx.size }}</span>
-                            </td>
-                            <td class="px-4 py-3 text-center whitespace-nowrap font-bold">
-                                {% if tx.movement_type == 'SALE' %}
-                                    <span class="text-rose-500">-{{ tx.quantity }}</span>
-                                {% elif tx.movement_type == 'RETURN' %}
-                                    <span class="text-emerald-500">+{{ tx.quantity }}</span>
-                                {% else %}
-                                    <span>{{ tx.quantity }}</span>
-                                {% endif %}
-                            </td>
-                            <td class="px-4 py-3 text-right whitespace-nowrap font-mono text-slate-600 dark:text-slate-300">
-                                ৳{{ tx.unit_price|floatformat:0 }}
-                            </td>
-                            <td class="px-4 py-3 text-right whitespace-nowrap font-mono font-bold">
-                                {% if tx.movement_type == 'SALE' %}
-                                    <span class="text-emerald-600 dark:text-emerald-400">+৳{{ tx.total_amount|floatformat:0 }}</span>
-                                {% elif tx.movement_type == 'RETURN' %}
-                                    <span class="text-amber-600 dark:text-amber-400">-৳{{ tx.total_amount|floatformat:0 }}</span>
-                                {% else %}
-                                    <span>৳{{ tx.total_amount|floatformat:0 }}</span>
-                                {% endif %}
-                            </td>
-                            <td class="px-4 py-3 text-slate-500 dark:text-slate-400 text-xs truncate max-w-[200px]">
-                                {{ tx.notes|default:"-" }}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="8" class="px-5 py-8 text-center text-xs text-slate-400">
-                                No sales or returns recorded yet. As orders are logged, transaction history will update here in real-time.
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="flex items-center space-x-2 w-full sm:w-auto">
+                {% if user_perm.can_adjust_stock %}
+                <button type="button" @click="openSaleModal()" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition flex items-center justify-center gap-1.5">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                    <span>Record Sale</span>
+                </button>
+                <button type="button" @click="openReturnModal()" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white shadow-xs transition flex items-center justify-center gap-1.5">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                    <span>Customer Return</span>
+                </button>
+                {% endif %}
+                <a href="{% url 'sales_tracker' %}" class="flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700 transition flex items-center justify-center gap-1.5">
+                    <span>Open Full Ledger</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                </a>
             </div>
         </div>
 
     </main>
 
-    <!-- MOBILE APPLICATION SLIDE-OUT SIDEBAR DRAWER -->
-    <div x-show="showMobileSidebar" x-cloak class="relative z-50 lg:hidden">
+    <!-- APPLICATION SLIDE-OUT SIDEBAR DRAWER (Accessible on Desktop & Mobile) -->
+    <div x-show="showMobileSidebar" x-cloak class="relative z-50">
         <!-- Backdrop Overlay -->
         <div x-show="showMobileSidebar" 
              x-transition:enter="transition-opacity ease-linear duration-300" 
@@ -1145,7 +1071,14 @@
                 <nav class="space-y-1.5 flex-1">
                     <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-semibold text-xs bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700/60">
                         <i data-lucide="layout-grid" class="w-4 h-4"></i>
-                        <span>Dashboard Overview</span>
+                        <span>Dashboard (Products)</span>
+                    </a>
+
+                    <!-- Sales Tracker & Customer Returns Link -->
+                    <a href="{% url 'sales_tracker' %}" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                        <i data-lucide="receipt" class="w-4 h-4 text-emerald-500"></i>
+                        <span class="flex-1">Sales Tracker & Returns</span>
+                        <span class="text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 font-mono px-1.5 py-0.5 rounded font-bold">Ledger</span>
                     </a>
 
                     <a href="{% url 'activity_log' %}" class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
