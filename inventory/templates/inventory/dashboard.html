@@ -66,15 +66,100 @@
                 </div>
             </div>
 
-            <!-- Right Header Section (User Menu + Actions) -->
-            <div class="flex items-center space-x-1.5 sm:space-x-3">
+            <!-- Right Header Section (Quick Actions & User Profile) -->
+            <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+                
+                <!-- Desktop-Only Nav Shortlinks -->
+                <a href="{% url 'sales_tracker' %}" 
+                   class="hidden xl:flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 border border-emerald-200 dark:border-emerald-800 transition">
+                    <i data-lucide="receipt" class="w-3.5 h-3.5 text-emerald-500"></i>
+                    <span>Sales Ledger</span>
+                </a>
+
+                <a href="{% url 'activity_log' %}" 
+                   class="hidden xl:flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition"
+                   title="View System Activity Log">
+                    <i data-lucide="history" class="w-3.5 h-3.5 text-blue-500"></i>
+                    <span>Audit Trail</span>
+                </a>
+
+                <a href="{% url 'export_inventory_csv' %}" 
+                   class="hidden lg:flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200 dark:border-slate-700/80 transition"
+                   title="Export full inventory to CSV/Excel format">
+                    <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-500"></i>
+                    <span>Export CSV</span>
+                </a>
+
+                <!-- QR / Barcode Scanner (Icon on mobile, text on desktop) -->
+                <button @click="openScannerModal()"
+                        class="p-2 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-700/60 transition flex items-center gap-1.5 shadow-xs"
+                        title="Scan QR or Barcode with Camera">
+                    <i data-lucide="scan-barcode" class="w-4 h-4"></i>
+                    <span class="hidden xl:inline text-xs font-semibold">Scan</span>
+                </button>
+
+                <!-- Dark / Light Theme Toggle Button -->
+                <button @click="toggleTheme()" 
+                        class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition flex items-center justify-center shadow-xs"
+                        :title="darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+                    <span x-show="darkMode" class="flex items-center">
+                        <i data-lucide="sun" class="w-4 h-4 text-amber-400"></i>
+                    </span>
+                    <span x-show="!darkMode" class="flex items-center">
+                        <i data-lucide="moon" class="w-4 h-4 text-blue-600"></i>
+                    </span>
+                </button>
+
+                <!-- Grid / List Switcher (Hidden on narrow mobile, available in filter or tablet+) -->
+                <div class="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700/80">
+                    <button @click="currentView = 'grid'" 
+                            :class="currentView === 'grid' ? 'bg-blue-600 text-white shadow' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                            class="p-1.5 rounded-lg transition flex items-center justify-center" 
+                            title="Grid View">
+                        <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                    </button>
+                    <button @click="currentView = 'list'" 
+                            :class="currentView === 'list' ? 'bg-blue-600 text-white shadow' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                            class="p-1.5 rounded-lg transition flex items-center justify-center" 
+                            title="Compact List View">
+                        <i data-lucide="list" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- Record Sale & Return Buttons (Desktop only; on mobile, available via bottom dock) -->
+                {% if user_perm.can_adjust_stock %}
+                <button @click="openSaleModal()"
+                        class="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 border border-emerald-200 dark:border-emerald-800 transition font-semibold text-xs shadow-xs"
+                        title="Record Customer Sale">
+                    <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                    <span>Record Sale</span>
+                </button>
+                <button @click="openReturnModal()"
+                        class="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-100 border border-amber-200 dark:border-amber-800 transition font-semibold text-xs shadow-xs"
+                        title="Customer Product Return">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    <span>Return</span>
+                </button>
+                {% endif %}
+
+                <!-- Add Product Button (Always visible for Super Admin, responsive icon/text) -->
+                {% if user_perm.can_manage_products %}
+                <button @click="openAddModal()" 
+                        class="flex items-center space-x-1 sm:space-x-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-2.5 sm:px-3.5 py-2 rounded-xl text-xs font-bold shadow-md shadow-blue-500/25 transition transform active:scale-95 shrink-0"
+                        title="Add New Apparel SKU">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Add Product</span>
+                    <span class="sm:hidden text-xs">Add</span>
+                </button>
+                {% endif %}
+
                 <!-- User Profile Dropdown Button -->
                 <div class="relative" x-data="{ openUserMenu: false }">
                     <button @click="openUserMenu = !openUserMenu"
-                            class="flex items-center space-x-1.5 sm:space-x-2 p-1 sm:pl-2 sm:pr-3 sm:py-1.5 rounded-xl sm:rounded-2xl border transition shadow-xs bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-blue-400 focus:outline-hidden"
+                            class="flex items-center space-x-1 sm:space-x-2 p-1 sm:pl-1.5 sm:pr-2.5 sm:py-1.5 rounded-xl border transition shadow-xs bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-blue-400 focus:outline-hidden"
                             title="Account & Role Menu">
                         <!-- Avatar / Silhouette -->
-                        <div class="w-8 h-8 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl overflow-hidden bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                        <div class="w-7 h-7 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl overflow-hidden bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
                             {% if user_perm.avatar_url %}
                                 <img src="{{ user_perm.avatar_url }}" alt="avatar" class="w-full h-full object-cover">
                             {% else %}
@@ -82,9 +167,9 @@
                             {% endif %}
                         </div>
 
-                        <!-- User Info (Hidden on very small screens, visible on md+) -->
-                        <div class="hidden md:block text-left leading-tight">
-                            <div class="text-xs font-bold text-slate-900 dark:text-white max-w-[110px] truncate">{{ user_perm.display_name }}</div>
+                        <!-- User Info (Hidden on small mobile screens) -->
+                        <div class="hidden lg:block text-left leading-tight">
+                            <div class="text-xs font-bold text-slate-900 dark:text-white max-w-[100px] truncate">{{ user_perm.display_name }}</div>
                             <div class="text-[10px] font-mono {% if user_perm.is_super_admin %}text-rose-500 font-bold{% elif user_perm.is_employee %}text-amber-500 font-bold{% else %}text-slate-400{% endif %}">
                                 {{ user_perm.role_label }}
                             </div>
@@ -93,9 +178,9 @@
                         <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 hidden sm:block"></i>
                     </button>
 
-                    <!-- User Account & Role Menu Dropdown -->
+                    <!-- User Account & Role Menu Dropdown (Fixed modal on mobile, absolute on desktop) -->
                     <div x-show="openUserMenu" @click.away="openUserMenu = false" x-cloak
-                         class="fixed sm:absolute inset-x-3 sm:inset-x-auto sm:right-0 top-16 sm:top-auto sm:mt-2 w-auto sm:w-72 max-w-sm sm:max-w-none mx-auto sm:mx-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl p-3 z-50 text-xs space-y-2">
+                         class="fixed sm:absolute inset-x-4 sm:inset-x-auto sm:right-0 top-20 sm:top-auto sm:mt-2 w-auto sm:w-72 max-w-sm sm:max-w-none mx-auto sm:mx-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-3 z-50 text-xs space-y-2">
                         
                         <!-- Profile Card Overview -->
                         <div class="p-3 bg-slate-50 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800/80 flex items-center space-x-3">
@@ -117,23 +202,26 @@
 
                         <!-- Menu Actions -->
                         <div class="space-y-1 pt-1">
-                            <!-- Edit Profile Button -->
                             <button @click="openProfileModal(); openUserMenu = false" 
                                     class="w-full flex items-center space-x-2.5 p-2.5 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-left font-medium">
                                 <i data-lucide="user-cog" class="w-4 h-4 text-blue-500 shrink-0"></i>
                                 <span>Edit Profile Settings</span>
                             </button>
 
-                            <!-- Activity Log -->
+                            <a href="{% url 'sales_tracker' %}" 
+                               class="w-full flex items-center space-x-2.5 p-2.5 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-left font-medium">
+                                <i data-lucide="receipt" class="w-4 h-4 text-emerald-500 shrink-0"></i>
+                                <span>Sales & Returns Ledger</span>
+                            </a>
+
                             <a href="{% url 'activity_log' %}" 
                                class="w-full flex items-center space-x-2.5 p-2.5 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-left font-medium">
                                 <i data-lucide="history" class="w-4 h-4 text-indigo-500 shrink-0"></i>
                                 <span>System Activity Trail</span>
                             </a>
 
-                            <!-- Export CSV (Mobile shortcut) -->
                             <a href="{% url 'export_inventory_csv' %}" 
-                               class="lg:hidden w-full flex items-center space-x-2.5 p-2.5 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-left font-medium">
+                               class="w-full flex items-center space-x-2.5 p-2.5 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-left font-medium">
                                 <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-500 shrink-0"></i>
                                 <span>Export Inventory CSV</span>
                             </a>
@@ -150,91 +238,6 @@
                     </div>
                 </div>
 
-                <!-- Activity Log Link Button (Desktop) -->
-                <a href="{% url 'activity_log' %}" 
-                   class="hidden xl:flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition"
-                   title="View System Activity Log">
-                    <i data-lucide="history" class="w-3.5 h-3.5 text-blue-500"></i>
-                    <span>Audit Trail</span>
-                </a>
-
-                <!-- Export CSV (Never need Excel) -->
-                <a href="{% url 'export_inventory_csv' %}" 
-                   class="hidden lg:flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200 dark:border-slate-700/80 transition"
-                   title="Export full inventory to CSV/Excel format">
-                    <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-500"></i>
-                    <span>Export CSV</span>
-                </a>
-            </div>
-
-            <!-- Header Actions: Barcode Scanner, View Switcher & Add Button -->
-            <div class="flex items-center space-x-1.5 sm:space-x-2">
-                
-                <!-- QR & Barcode Scanner Button -->
-                <button @click="openScannerModal()"
-                        class="p-2 sm:px-2.5 sm:py-2 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-700/60 transition flex items-center gap-1.5 shadow-xs"
-                        title="Scan QR or Barcode with Camera">
-                    <i data-lucide="scan-barcode" class="w-4 h-4"></i>
-                    <span class="hidden xl:inline text-xs font-semibold">Scan Barcode</span>
-                </button>
-
-                <!-- Dark / Light Mode Toggle Button -->
-                <button @click="toggleTheme()" 
-                        class="p-2 sm:px-2.5 sm:py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition flex items-center justify-center gap-1.5 shadow-xs"
-                        :title="darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
-                    <!-- Sun Icon (Shown in Dark Mode) -->
-                    <span x-show="darkMode" class="flex items-center">
-                        <i data-lucide="sun" class="w-4 h-4 text-amber-400"></i>
-                    </span>
-                    <!-- Moon Icon (Shown in Light Mode) -->
-                    <span x-show="!darkMode" class="flex items-center">
-                        <i data-lucide="moon" class="w-4 h-4 text-blue-600"></i>
-                    </span>
-                </button>
-
-                <!-- Grid / List Switcher -->
-                <div class="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700/80">
-                    <button @click="currentView = 'grid'" 
-                            :class="currentView === 'grid' ? 'bg-blue-600 text-white shadow' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
-                            class="p-1.5 rounded-lg transition flex items-center justify-center" 
-                            title="Grid View">
-                        <i data-lucide="layout-grid" class="w-4 h-4"></i>
-                    </button>
-                    <button @click="currentView = 'list'" 
-                            :class="currentView === 'list' ? 'bg-blue-600 text-white shadow' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
-                            class="p-1.5 rounded-lg transition flex items-center justify-center" 
-                            title="Compact List View">
-                        <i data-lucide="list" class="w-4 h-4"></i>
-                    </button>
-                </div>
-
-                <!-- Record Customer Sale Button -->
-                {% if user_perm.can_adjust_stock %}
-                <button @click="openSaleModal()"
-                        class="p-2 sm:px-3 sm:py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 transition flex items-center gap-1.5 shadow-xs font-semibold text-xs"
-                        title="Record Customer Sale">
-                    <i data-lucide="shopping-cart" class="w-4 h-4"></i>
-                    <span class="hidden md:inline">Record Sale</span>
-                </button>
-
-                <!-- Process Return Button -->
-                <button @click="openReturnModal()"
-                        class="p-2 sm:px-3 sm:py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800 transition flex items-center gap-1.5 shadow-xs font-semibold text-xs"
-                        title="Customer Product Return">
-                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-                    <span class="hidden md:inline">Return</span>
-                </button>
-                {% endif %}
-
-                <!-- Add Product Button (Only for Super Admin) -->
-                {% if user_perm.can_manage_products %}
-                <button @click="openAddModal()" 
-                        class="flex items-center space-x-1.5 sm:space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-blue-500/25 transition transform active:scale-95 shrink-0"
-                        title="Add New Apparel SKU">
-                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                    <span>Add Product</span>
-                </button>
-                {% endif %}
             </div>
         </div>
     </header>
