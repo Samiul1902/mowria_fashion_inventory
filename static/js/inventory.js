@@ -50,7 +50,6 @@ function inventoryApp() {
                 document.documentElement.classList.remove('dark');
                 localStorage.setItem('theme', 'light');
             }
-            this.$nextTick(() => lucide.createIcons());
         },
 
         openScannerModal() {
@@ -186,3 +185,4 @@ function inventoryApp() {
 document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
 });
+

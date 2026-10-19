@@ -175,14 +175,16 @@
 
                 <!-- Dark / Light Mode Toggle Button -->
                 <button @click="toggleTheme()" 
-                        class="p-2 sm:px-2.5 sm:py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition flex items-center gap-1.5 shadow-xs"
+                        class="p-2 sm:px-2.5 sm:py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition flex items-center justify-center gap-1.5 shadow-xs"
                         :title="darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
-                    <template x-if="darkMode">
+                    <!-- Sun Icon (Shown in Dark Mode) -->
+                    <span x-show="darkMode" class="flex items-center">
                         <i data-lucide="sun" class="w-4 h-4 text-amber-400"></i>
-                    </template>
-                    <template x-if="!darkMode">
+                    </span>
+                    <!-- Moon Icon (Shown in Light Mode) -->
+                    <span x-show="!darkMode" class="flex items-center">
                         <i data-lucide="moon" class="w-4 h-4 text-blue-600"></i>
-                    </template>
+                    </span>
                 </button>
 
                 <!-- Grid / List Switcher -->
