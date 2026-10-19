@@ -48,7 +48,7 @@
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
             
             <!-- Brand & Sidebar Menu Drawer Toggle -->
-            <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
+            <div class="flex items-center space-x-2 sm:space-x-3 shrink-0 min-w-0">
                 <!-- Navigation Drawer Toggle Button (Desktop & Mobile) -->
                 <button @click="showMobileSidebar = true" class="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition shrink-0" title="Open Navigation Menu">
                     <i data-lucide="menu" class="w-5 h-5"></i>
@@ -57,17 +57,17 @@
                 <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-blue-700 via-blue-600 to-cyan-400 flex items-center justify-center shadow-md shadow-blue-500/25 shrink-0">
                     <i data-lucide="shirt" class="w-5 h-5 text-white"></i>
                 </div>
-                <div class="shrink-0">
+                <div class="shrink-0 min-w-0">
                     <div class="flex items-center gap-1.5 sm:gap-2">
-                        <h1 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white whitespace-nowrap">Mowria Fashion</h1>
-                        <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shrink-0">MFB</span>
+                        <h1 class="text-sm sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white whitespace-nowrap">Mowria Fashion</h1>
+                        <span class="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shrink-0">MFB</span>
                     </div>
-                    <p class="hidden sm:block text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">Garment Inventory & Valuation Core</p>
+                    <p class="hidden md:block text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">Garment Inventory & Valuation Core</p>
                 </div>
             </div>
 
             <!-- Right Header Section (Quick Actions & User Profile) -->
-            <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+            <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
                 
                 <!-- Desktop-Only Nav Shortlinks -->
                 <a href="{% url 'sales_tracker' %}" 
@@ -90,9 +90,9 @@
                     <span>Export CSV</span>
                 </a>
 
-                <!-- QR / Barcode Scanner (Icon on mobile, text on desktop) -->
+                <!-- QR / Barcode Scanner (Visible on desktop; mobile has it pinned to bottom dock) -->
                 <button @click="openScannerModal()"
-                        class="p-2 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-700/60 transition flex items-center gap-1.5 shadow-xs"
+                        class="hidden sm:flex items-center gap-1.5 p-2 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 border border-blue-200 dark:border-blue-700/60 transition shadow-xs"
                         title="Scan QR or Barcode with Camera">
                     <i data-lucide="scan-barcode" class="w-4 h-4"></i>
                     <span class="hidden xl:inline text-xs font-semibold">Scan</span>
@@ -163,19 +163,19 @@
                             {% if user_perm.avatar_url %}
                                 <img src="{{ user_perm.avatar_url }}" alt="avatar" class="w-full h-full object-cover">
                             {% else %}
-                                <span>{{ user_perm.display_name|slice:":1"|upper }}</span>
+                                <span>{{ user_perm.display_name|default:'Admin'|slice:":1"|upper }}</span>
                             {% endif %}
                         </div>
 
-                        <!-- User Info (Hidden on small mobile screens) -->
-                        <div class="hidden lg:block text-left leading-tight">
-                            <div class="text-xs font-bold text-slate-900 dark:text-white max-w-[100px] truncate">{{ user_perm.display_name }}</div>
-                            <div class="text-[10px] font-mono {% if user_perm.is_super_admin %}text-rose-500 font-bold{% elif user_perm.is_employee %}text-amber-500 font-bold{% else %}text-slate-400{% endif %}">
+                        <!-- User Info -->
+                        <div class="hidden sm:block text-left leading-tight">
+                            <div class="text-xs font-bold text-slate-900 dark:text-white max-w-[110px] truncate">{{ user_perm.display_name|default:'Admin' }}</div>
+                            <div class="text-[10px] font-mono font-bold {% if user_perm.is_super_admin %}text-rose-500{% elif user_perm.is_employee %}text-amber-500{% else %}text-slate-400{% endif %}">
                                 {{ user_perm.role_label }}
                             </div>
                         </div>
 
-                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 hidden sm:block"></i>
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
                     </button>
 
                     <!-- User Account & Role Menu Dropdown (Fixed modal on mobile, absolute on desktop) -->
@@ -188,7 +188,7 @@
                                 {% if user_perm.avatar_url %}
                                     <img src="{{ user_perm.avatar_url }}" alt="avatar" class="w-full h-full object-cover">
                                 {% else %}
-                                    <span>{{ user_perm.display_name|slice:":1"|upper }}</span>
+                                    <span>{{ user_perm.display_name|default:'Admin'|slice:":1"|upper }}</span>
                                 {% endif %}
                             </div>
                             <div class="overflow-hidden min-w-0 flex-1">
@@ -1023,7 +1023,7 @@
                         {% if user_perm.avatar_url %}
                             <img src="{{ user_perm.avatar_url }}" alt="avatar" class="w-full h-full object-cover">
                         {% else %}
-                            <span>{{ user_perm.display_name|slice:":1"|upper }}</span>
+                            <span>{{ user_perm.display_name|default:'Admin'|slice:":1"|upper }}</span>
                         {% endif %}
                     </div>
                     <div class="min-w-0 flex-1">

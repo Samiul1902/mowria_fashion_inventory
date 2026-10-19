@@ -28,33 +28,24 @@ def get_user_role_context(request):
             'is_viewer': True,
         }
 
-    user = request.user
-    if user.is_superuser:
-        return {
-            'role': 'SUPER_ADMIN',
-            'role_label': 'Super Admin',
-            'can_manage_products': True,
-            'can_adjust_stock': True,
-            'is_super_admin': True,
-            'is_employee': False,
-            'is_viewer': False,
-        }
+    profile, _ = UserProfile.objects.get_or_create(user=user, defaults={'role': UserProfile.ROLE_SUPER_ADMIN if user.is_superuser else UserProfile.ROLE_VIEWER})
+    role = UserProfile.ROLE_SUPER_ADMIN if user.is_superuser else profile.role
 
-    profile, _ = UserProfile.objects.get_or_create(user=user, defaults={'role': UserProfile.ROLE_VIEWER})
-    role = profile.role
+    is_super_admin = user.is_superuser or (role == UserProfile.ROLE_SUPER_ADMIN)
+    is_employee = not is_super_admin and (role == UserProfile.ROLE_EMPLOYEE)
+    is_viewer = not is_super_admin and (role == UserProfile.ROLE_VIEWER)
 
-    is_super_admin = (role == UserProfile.ROLE_SUPER_ADMIN)
-    is_employee = (role == UserProfile.ROLE_EMPLOYEE)
-    is_viewer = (role == UserProfile.ROLE_VIEWER)
+    role_label = 'Super Admin' if is_super_admin else profile.get_role_display()
+    display_name = f"{user.first_name} {user.last_name}".strip() or (user.username or user.email or 'Admin')
 
     return {
         'role': role,
-        'role_label': profile.get_role_display(),
+        'role_label': role_label,
         'username': user.username,
         'email': user.email or user.username,
         'first_name': user.first_name,
         'last_name': user.last_name,
-        'display_name': f"{user.first_name} {user.last_name}".strip() or (user.email or user.username),
+        'display_name': display_name,
         'phone': profile.phone or '',
         'bio': profile.bio or '',
         'avatar_url': profile.avatar.url if profile.avatar else '',
