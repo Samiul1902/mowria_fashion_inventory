@@ -29,6 +29,7 @@ def get_user_role_context(request):
             'is_viewer': True,
         }
 
+    user = request.user
     profile, _ = UserProfile.objects.get_or_create(user=user, defaults={'role': UserProfile.ROLE_SUPER_ADMIN if user.is_superuser else UserProfile.ROLE_VIEWER})
     role = UserProfile.ROLE_SUPER_ADMIN if user.is_superuser else profile.role
 
