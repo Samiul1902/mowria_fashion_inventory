@@ -1525,22 +1525,14 @@
                             <input type="file" name="photo" id="add-photo-input" accept="image/*"
                                    class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
                             
-                            <!-- Action Buttons: 1. Native Camera Trigger, 2. In-Browser Webcam Viewfinder -->
+                            <!-- Action Buttons: 1. Live Camera Trigger, 2. Live Preview -->
                             <div class="flex items-center gap-1.5 shrink-0">
-                                <!-- Native Mobile Camera Button (Works on all mobile devices & non-HTTPS) -->
-                                <label for="add-photo-native-cam" class="cursor-pointer inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 text-emerald-600 dark:text-emerald-400 rounded-xl text-xs font-semibold transition border border-emerald-200 dark:border-emerald-800">
+                                <!-- Direct In-Browser & Mobile Camera Trigger -->
+                                <button type="button" @click="openCamera('add-photo-input')" 
+                                        class="cursor-pointer inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-xs transition"
+                                        title="Direct camera click & capture">
                                     <i data-lucide="camera" class="w-4 h-4"></i>
                                     <span>Take Photo</span>
-                                </label>
-                                <input type="file" id="add-photo-native-cam" accept="image/*" capture="environment" class="hidden"
-                                       onchange="if(this.files.length){ document.getElementById('add-photo-input').files = this.files; document.getElementById('add-photo-input-status').innerText = 'Photo captured: ' + this.files[0].name; }">
-
-                                <!-- In-Browser Live Webcam Stream (For Desktop / Webcams) -->
-                                <button type="button" @click="openCamera('add-photo-input')" 
-                                        class="cursor-pointer inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl text-xs font-semibold transition border border-blue-200 dark:border-blue-700/60"
-                                        title="Live viewfinder webcam stream">
-                                    <i data-lucide="video" class="w-4 h-4"></i>
-                                    <span>Webcam</span>
                                 </button>
                             </div>
                         </div>
@@ -1696,20 +1688,13 @@
                         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                             <input type="file" name="photo" id="edit-photo-input" accept="image/*" class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer">
                             
-                            <!-- Action Buttons: 1. Native Camera Trigger, 2. In-Browser Webcam Viewfinder -->
+                            <!-- Action Buttons: 1. Live Camera Trigger, 2. Live Preview -->
                             <div class="flex items-center gap-1.5 shrink-0">
-                                <label for="edit-photo-native-cam" class="cursor-pointer inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 text-emerald-600 dark:text-emerald-400 rounded-xl text-xs font-semibold transition border border-emerald-200 dark:border-emerald-800">
+                                <button type="button" @click="openCamera('edit-photo-input')" 
+                                        class="cursor-pointer inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold shadow-xs transition"
+                                        title="Direct camera click & capture">
                                     <i data-lucide="camera" class="w-4 h-4"></i>
                                     <span>Take Photo</span>
-                                </label>
-                                <input type="file" id="edit-photo-native-cam" accept="image/*" capture="environment" class="hidden"
-                                       onchange="if(this.files.length){ document.getElementById('edit-photo-input').files = this.files; document.getElementById('edit-photo-input-status').innerText = 'Photo captured: ' + this.files[0].name; }">
-
-                                <button type="button" @click="openCamera('edit-photo-input')" 
-                                        class="cursor-pointer inline-flex items-center justify-center space-x-1.5 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-xl text-xs font-semibold transition border border-blue-200 dark:border-blue-700/60"
-                                        title="Live viewfinder webcam stream">
-                                    <i data-lucide="video" class="w-4 h-4"></i>
-                                    <span>Webcam</span>
                                 </button>
                             </div>
                         </div>

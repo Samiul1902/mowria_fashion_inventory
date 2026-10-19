@@ -155,34 +155,61 @@ function inventoryApp() {
         },
 
         async startCameraStream() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('Camera API is not supported on this browser or requires a secure context (HTTPS or http://localhost / http://127.0.0.1).');
+                this.closeCamera();
+                return;
+            }
+
             try {
                 if (this.cameraStream) {
                     this.cameraStream.getTracks().forEach(t => t.stop());
                 }
-                const constraints = {
-                    video: {
-                        facingMode: { ideal: this.cameraFacingMode },
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    },
-                    audio: false
-                };
-                this.cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+                // First attempt: try with facingMode preference
+                let stream = null;
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: { ideal: this.cameraFacingMode }
+                        },
+                        audio: false
+                    });
+                } catch (firstErr) {
+                    // Second attempt: general fallback with plain video: true (ideal for desktop webcams)
+                    console.warn('FacingMode camera failed, falling back to basic video constraint:', firstErr);
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: true,
+                        audio: false
+                    });
+                }
+
+                this.cameraStream = stream;
                 const videoEl = document.getElementById('camera-stream-video');
                 if (videoEl) {
                     videoEl.srcObject = this.cameraStream;
-                    videoEl.play();
+                    await videoEl.play().catch(e => console.warn('Video play error:', e));
                 }
             } catch (err) {
-                console.warn('Camera stream permission or device issue:', err);
-                alert('Could not start camera. Please verify camera permissions in your browser, or select a file using the file picker.');
+                console.error('Camera stream error:', err);
+                let message = 'Could not access the camera.\n\n';
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    message += 'Permission was denied. Please click the camera icon in your browser address bar to allow camera access, then try again.';
+                } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                    message += 'No camera device was detected on your computer/phone.';
+                } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                    message += 'Camera is currently in use by another application (e.g. Zoom, Teams, or another tab).';
+                } else {
+                    message += (err.message || 'Please check your browser permissions or use the file upload option.');
+                }
+                alert(message);
                 this.closeCamera();
             }
         },
 
-        switchCameraFacing() {
+        async switchCameraFacing() {
             this.cameraFacingMode = this.cameraFacingMode === 'environment' ? 'user' : 'environment';
-            this.startCameraStream();
+            await this.startCameraStream();
         },
 
         snapPhoto() {
