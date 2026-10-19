@@ -12,5 +12,4 @@ urlpatterns = [
     path('export/csv/', views.export_inventory_csv, name='export_inventory_csv'),
     path('profile/update/', views.update_profile, name='update_profile'),
     path('activity-log/', views.activity_log_view, name='activity_log'),
-    path('switch-role/', views.quick_switch_demo_role, name='switch_role'),
 ]

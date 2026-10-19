@@ -481,31 +481,3 @@ def activity_log_view(request):
         'logs': logs,
         'user_perm': user_perm
     })
-
-
-def quick_switch_demo_role(request):
-    target_role = request.GET.get('role', 'SUPER_ADMIN').upper()
-    role_map = {
-        'SUPER_ADMIN': ('superadmin@mowriafashion.com', UserProfile.ROLE_SUPER_ADMIN, True),
-        'EMPLOYEE': ('salesrep@mowriafashion.com', UserProfile.ROLE_EMPLOYEE, False),
-        'VIEWER': ('view@mowriafashion.com', UserProfile.ROLE_VIEWER, False),
-    }
-
-    if target_role not in role_map:
-        return redirect('dashboard')
-
-    email, role_const, is_super = role_map[target_role]
-    username = email.split('@')[0]
-    user, _ = User.objects.get_or_create(username=username, defaults={'email': email})
-    user.email = email
-    user.is_superuser = is_super
-    user.is_staff = is_super
-    user.save()
-
-    profile, _ = UserProfile.objects.get_or_create(user=user)
-    profile.role = role_const
-    profile.save()
-
-    login(request, user)
-    log_activity(request, 'USER_LOGIN', details=f"Switched session role to {profile.get_role_display()}")
-    return redirect('dashboard')
