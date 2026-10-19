@@ -245,6 +245,19 @@
     <!-- Main Container (pb-24 on mobile ensures bottom navigation bar never overlaps content) -->
     <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-5 pb-24 sm:py-8 space-y-6 sm:space-y-8">
 
+        {% if messages %}
+        <div class="space-y-2">
+            {% for message in messages %}
+            <div class="flex items-center justify-between p-3.5 rounded-2xl text-xs sm:text-sm font-semibold border shadow-xs {% if message.tags == 'error' %}bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200{% else %}bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200{% endif %}">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle-2{% endif %}" class="w-4 h-4 shrink-0"></i>
+                    <span>{{ message }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <!-- ADVANCED ANALYTICS & VISUALIZATION BAR (Eliminating Excel) -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             
@@ -488,6 +501,8 @@
                                 name: '{{ product.name|escapejs }}',
                                 category: '{{ product.category|escapejs }}',
                                 colour: '{{ product.colour|default:''|escapejs }}',
+                                fabric_type: '{{ product.fabric_type|default:''|escapejs }}',
+                                gsm: '{{ product.gsm|default:''|escapejs }}',
                                 unit_cost: '{{ product.unit_cost }}',
                                 price: '{{ product.price }}',
                                 photo_url: '{% if product.photo %}{{ product.photo.url }}{% endif %}',
@@ -704,6 +719,8 @@
                                             name: '{{ product.name|escapejs }}',
                                             category: '{{ product.category|escapejs }}',
                                             colour: '{{ product.colour|default:''|escapejs }}',
+                                            fabric_type: '{{ product.fabric_type|default:''|escapejs }}',
+                                            gsm: '{{ product.gsm|default:''|escapejs }}',
                                             unit_cost: '{{ product.unit_cost }}',
                                             price: '{{ product.price }}',
                                             size_s: {{ product.size_s }},
@@ -771,6 +788,8 @@
                                     name: '{{ product.name|escapejs }}',
                                     category: '{{ product.category|escapejs }}',
                                     colour: '{{ product.colour|default:''|escapejs }}',
+                                    fabric_type: '{{ product.fabric_type|default:''|escapejs }}',
+                                    gsm: '{{ product.gsm|default:''|escapejs }}',
                                     unit_cost: '{{ product.unit_cost }}',
                                     price: '{{ product.price }}',
                                     photo_url: '{% if product.photo %}{{ product.photo.url }}{% endif %}',
@@ -905,6 +924,8 @@
                                                     name: '{{ product.name|escapejs }}',
                                                     category: '{{ product.category|escapejs }}',
                                                     colour: '{{ product.colour|default:''|escapejs }}',
+                                                    fabric_type: '{{ product.fabric_type|default:''|escapejs }}',
+                                                    gsm: '{{ product.gsm|default:''|escapejs }}',
                                                     unit_cost: '{{ product.unit_cost }}',
                                                     price: '{{ product.price }}',
                                                     size_s: {{ product.size_s }},
@@ -1115,22 +1136,26 @@
                 <span class="text-[10px] font-medium mt-0.5">Scan</span>
             </button>
 
-            <!-- 3. Record Sale (Prominent center button) -->
-            {% if user_perm.can_adjust_stock %}
+            <!-- 3. Primary Action Button -->
+            {% if user_perm.can_manage_products %}
+            <button @click="openAddModal()" class="w-12 h-12 -mt-5 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/40 border-2 border-white dark:border-slate-900 active:scale-95 transition" title="Add Product">
+                <i data-lucide="plus" class="w-6 h-6"></i>
+            </button>
+            {% elif user_perm.can_adjust_stock %}
             <button @click="openSaleModal()" class="w-12 h-12 -mt-5 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/40 border-2 border-white dark:border-slate-900 active:scale-95 transition" title="Record Sale">
                 <i data-lucide="shopping-cart" class="w-5 h-5"></i>
             </button>
             {% else %}
-            <button @click="openAddModal()" class="w-12 h-12 -mt-5 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/40 border-2 border-white dark:border-slate-900 active:scale-95 transition">
-                <i data-lucide="plus" class="w-5 h-5"></i>
+            <button @click="openScannerModal()" class="w-12 h-12 -mt-5 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/40 border-2 border-white dark:border-slate-900 active:scale-95 transition">
+                <i data-lucide="scan-barcode" class="w-5 h-5"></i>
             </button>
             {% endif %}
 
-            <!-- 4. Customer Return -->
+            <!-- 4. Sale / Return Action for Mobile -->
             {% if user_perm.can_adjust_stock %}
-            <button @click="openReturnModal()" class="flex flex-col items-center text-slate-500 dark:text-slate-400 hover:text-amber-500 py-1 px-2">
-                <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
-                <span class="text-[10px] font-medium mt-0.5">Return</span>
+            <button @click="openSaleModal()" class="flex flex-col items-center text-slate-500 dark:text-slate-400 hover:text-emerald-500 py-1 px-2" title="Record Sale">
+                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium mt-0.5">Sale</span>
             </button>
             {% else %}
             <a href="{% url 'activity_log' %}" class="flex flex-col items-center text-slate-500 dark:text-slate-400 hover:text-blue-600 py-1 px-2">
@@ -1409,6 +1434,14 @@
                         {{ product_form.colour }}
                     </div>
                     <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Fabric Type</label>
+                        {{ product_form.fabric_type }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">GSM (Fabric Weight)</label>
+                        {{ product_form.gsm }}
+                    </div>
+                    <div>
                         <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Unit Cost (৳ Wholesale)</label>
                         {{ product_form.unit_cost }}
                     </div>
@@ -1559,6 +1592,14 @@
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Colour</label>
                         <input type="text" name="colour" x-model="editData.colour" class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Fabric Type</label>
+                        <input type="text" name="fabric_type" x-model="editData.fabric_type" placeholder="e.g. 100% Cotton, Pique" class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">GSM (Fabric Weight)</label>
+                        <input type="text" name="gsm" x-model="editData.gsm" placeholder="e.g. 180 GSM" class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/50">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Unit Cost (৳ Wholesale)</label>
@@ -1733,11 +1774,19 @@
                 <div class="md:col-span-7 space-y-4">
                     
                     <!-- Basic Specs -->
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-wrap items-center gap-2 justify-between">
                         <span class="text-xs text-slate-500 dark:text-slate-400">Category: <strong class="text-slate-800 dark:text-slate-200" x-text="previewData.category"></strong></span>
-                        <template x-if="previewData.colour">
-                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium" x-text="'Colour: ' + previewData.colour"></span>
-                        </template>
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <template x-if="previewData.colour">
+                                <span class="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium" x-text="'Colour: ' + previewData.colour"></span>
+                            </template>
+                            <template x-if="previewData.fabric_type">
+                                <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-medium" x-text="'Fabric: ' + previewData.fabric_type"></span>
+                            </template>
+                            <template x-if="previewData.gsm">
+                                <span class="text-xs px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 font-medium" x-text="'GSM: ' + previewData.gsm"></span>
+                            </template>
+                        </div>
                     </div>
 
                     <!-- Financial & Valuation Cards -->

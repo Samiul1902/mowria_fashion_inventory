@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponse
 from django.views.decorators.http import require_POST
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.db.models import Sum, Q, Count
@@ -281,12 +282,16 @@ def product_create(request):
     form = ProductForm(request.POST, request.FILES)
     if form.is_valid():
         product = form.save()
+        messages.success(request, f"Product SKU '{product.code}' created successfully!")
         log_activity(
             request, 
             'PRODUCT_CREATED', 
             product=product, 
             details=f"Created SKU {product.code} - {product.name} with initial stock of {product.total_quantity} units (Wholesale: ৳{product.unit_cost}, Retail: ৳{product.price})"
         )
+    else:
+        err_msg = "; ".join([f"{f}: {', '.join(errs)}" for f, errs in form.errors.items()])
+        messages.error(request, f"Failed to save product: {err_msg}")
     return redirect('dashboard')
 
 
@@ -300,12 +305,16 @@ def product_update(request, pk):
     form = ProductForm(request.POST, request.FILES, instance=product)
     if form.is_valid():
         product = form.save()
+        messages.success(request, f"Product SKU '{product.code}' updated successfully!")
         log_activity(
             request, 
             'PRODUCT_UPDATED', 
             product=product, 
             details=f"Updated product specs: '{product.name}' (Category: {product.category}, Retail: ৳{product.price}, Cost: ৳{product.unit_cost})"
         )
+    else:
+        err_msg = "; ".join([f"{f}: {', '.join(errs)}" for f, errs in form.errors.items()])
+        messages.error(request, f"Failed to update product: {err_msg}")
     return redirect('dashboard')
 
 
@@ -318,6 +327,8 @@ def product_delete(request, pk):
     product = get_object_or_404(Product, pk=pk)
     code = product.code
     name = product.name
+    product.delete()
+    messages.success(request, f"Product '{name}' ({code}) has been deleted.")
     if product.photo:
         try:
             product.photo.delete(save=False)

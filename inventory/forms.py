@@ -32,6 +32,7 @@ class ProductForm(forms.ModelForm):
         model = Product
         fields = [
             'code', 'name', 'category', 'colour',
+            'fabric_type', 'gsm',
             'unit_cost', 'price', 'photo',
             'size_s', 'size_m', 'size_l', 'size_xl', 'size_xxl',
             's_chest', 's_length', 's_shoulder',
@@ -57,6 +58,14 @@ class ProductForm(forms.ModelForm):
             'colour': forms.TextInput(attrs={
                 'class': input_base_cls,
                 'placeholder': 'e.g. Navy Blue'
+            }),
+            'fabric_type': forms.TextInput(attrs={
+                'class': input_base_cls,
+                'placeholder': 'e.g. 100% Cotton, Pique, Fleece'
+            }),
+            'gsm': forms.TextInput(attrs={
+                'class': input_base_cls,
+                'placeholder': 'e.g. 180 GSM, 220 GSM'
             }),
             'unit_cost': forms.NumberInput(attrs={
                 'class': input_base_cls,
