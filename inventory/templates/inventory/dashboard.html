@@ -67,70 +67,103 @@
                 </div>
             </div>
 
-            <!-- Role Badge & Account Controls -->
+            <!-- Role Badge & User Profile Controls -->
             <div class="flex items-center space-x-2">
-                <!-- Role Status Pill -->
-                <div class="relative" x-data="{ openRoleMenu: false }">
-                    <button @click="openRoleMenu = !openRoleMenu"
-                            class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition shadow-xs {% if user_perm.is_super_admin %}bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800/60{% elif user_perm.is_employee %}bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800/60{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700{% endif %}">
-                        <span class="w-2 h-2 rounded-full {% if user_perm.is_super_admin %}bg-rose-500 animate-pulse{% elif user_perm.is_employee %}bg-amber-500{% else %}bg-slate-400{% endif %}"></span>
-                        <span class="font-mono">{{ user_perm.role_label }}</span>
-                        <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+                <!-- User Profile Dropdown Button -->
+                <div class="relative" x-data="{ openUserMenu: false }">
+                    <button @click="openUserMenu = !openUserMenu"
+                            class="flex items-center space-x-2 pl-2 pr-3 py-1.5 rounded-2xl border transition shadow-xs bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-blue-400">
+                        <!-- Avatar / Silhouette -->
+                        <div class="w-7 h-7 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                            {% if user_perm.avatar_url %}
+                                <img src="{{ user_perm.avatar_url }}" alt="avatar" class="w-full h-full object-cover">
+                            {% else %}
+                                <span>{{ user_perm.display_name|slice:":1"|upper }}</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- User Info -->
+                        <div class="hidden sm:block text-left leading-tight">
+                            <div class="text-xs font-bold text-slate-900 dark:text-white max-w-[110px] truncate">{{ user_perm.display_name }}</div>
+                            <div class="text-[10px] font-mono {% if user_perm.is_super_admin %}text-rose-500 font-bold{% elif user_perm.is_employee %}text-amber-500 font-bold{% else %}text-slate-400{% endif %}">
+                                {{ user_perm.role_label }}
+                            </div>
+                        </div>
+
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
                     </button>
 
-                    <!-- Dropdown for fast testing of 3 roles + Login / Logout -->
-                    <div x-show="openRoleMenu" @click.away="openRoleMenu = false" x-cloak
-                         class="absolute right-0 sm:left-0 mt-2 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-2.5 z-50 text-xs space-y-1.5">
-                        <div class="px-2.5 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Switch Active Role</div>
+                    <!-- User Account & Role Menu -->
+                    <div x-show="openUserMenu" @click.away="openUserMenu = false" x-cloak
+                         class="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-3 z-50 text-xs space-y-2">
                         
-                        <!-- Role 1: Super Admin -->
-                        <a href="{% url 'switch_role' %}?role=SUPER_ADMIN" 
-                           class="flex items-start space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition {% if user_perm.is_super_admin %}bg-blue-50/50 dark:bg-slate-800/80{% endif %}">
-                            <span class="w-2 h-2 rounded-full bg-rose-500 mt-1"></span>
-                            <div>
-                                <div class="font-bold text-slate-900 dark:text-white">1. Super Admin</div>
-                                <div class="text-[11px] text-slate-400">superadmin@mowriafashion.com</div>
+                        <!-- Profile Card Overview -->
+                        <div class="p-3 bg-slate-50 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800/80 flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-2xl overflow-hidden bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+                                {% if user_perm.avatar_url %}
+                                    <img src="{{ user_perm.avatar_url }}" alt="avatar" class="w-full h-full object-cover">
+                                {% else %}
+                                    <span>{{ user_perm.display_name|slice:":1"|upper }}</span>
+                                {% endif %}
                             </div>
-                        </a>
-
-                        <!-- Role 2: Employee -->
-                        <a href="{% url 'switch_role' %}?role=EMPLOYEE" 
-                           class="flex items-start space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition {% if user_perm.is_employee %}bg-blue-50/50 dark:bg-slate-800/80{% endif %}">
-                            <span class="w-2 h-2 rounded-full bg-amber-500 mt-1"></span>
-                            <div>
-                                <div class="font-bold text-slate-900 dark:text-white">2. Employee (Edit Stock Only)</div>
-                                <div class="text-[11px] text-slate-400">salesrep@mowriafashion.com</div>
+                            <div class="overflow-hidden">
+                                <div class="font-bold text-slate-900 dark:text-white truncate">{{ user_perm.display_name }}</div>
+                                <div class="text-[11px] text-slate-400 truncate">{{ user_perm.email }}</div>
+                                <span class="inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-mono font-bold {% if user_perm.is_super_admin %}bg-rose-500/10 text-rose-500 border border-rose-500/20{% elif user_perm.is_employee %}bg-amber-500/10 text-amber-500 border border-amber-500/20{% else %}bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400{% endif %}">
+                                    {{ user_perm.role_label }}
+                                </span>
                             </div>
-                        </a>
+                        </div>
 
-                        <!-- Role 3: Viewer -->
-                        <a href="{% url 'switch_role' %}?role=VIEWER" 
-                           class="flex items-start space-x-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition {% if user_perm.is_viewer %}bg-blue-50/50 dark:bg-slate-800/80{% endif %}">
-                            <span class="w-2 h-2 rounded-full bg-slate-400 mt-1"></span>
-                            <div>
-                                <div class="font-bold text-slate-900 dark:text-white">3. Viewer (Read Only)</div>
-                                <div class="text-[11px] text-slate-400">view@mowriafashion.com</div>
+                        <!-- Menu Actions -->
+                        <div class="space-y-1 pt-1">
+                            <!-- Edit Profile Button -->
+                            <button @click="openProfileModal(); openUserMenu = false" 
+                                    class="w-full flex items-center space-x-2.5 p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-left font-medium">
+                                <i data-lucide="user-cog" class="w-4 h-4 text-blue-500"></i>
+                                <span>Edit Profile Settings</span>
+                            </button>
+
+                            <!-- Activity Log -->
+                            <a href="{% url 'activity_log' %}" 
+                               class="w-full flex items-center space-x-2.5 p-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-left font-medium">
+                                <i data-lucide="history" class="w-4 h-4 text-indigo-500"></i>
+                                <span>System Activity Trail</span>
+                            </a>
+                        </div>
+
+                        <!-- Switch Demo Role Section -->
+                        <div class="pt-2 border-t border-slate-200 dark:border-slate-800">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 mb-1">Switch Active Role</div>
+                            <div class="grid grid-cols-3 gap-1 text-center font-mono">
+                                <a href="{% url 'switch_role' %}?role=SUPER_ADMIN" class="p-1.5 rounded-lg bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 hover:opacity-80 text-[10px] font-bold">Admin</a>
+                                <a href="{% url 'switch_role' %}?role=EMPLOYEE" class="p-1.5 rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 hover:opacity-80 text-[10px] font-bold">Employee</a>
+                                <a href="{% url 'switch_role' %}?role=VIEWER" class="p-1.5 rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 hover:opacity-80 text-[10px] font-bold">Viewer</a>
                             </div>
-                        </a>
+                        </div>
 
-                        <div class="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between px-2">
-                            <a href="{% url 'login_view' %}" class="text-blue-600 dark:text-blue-400 font-semibold hover:underline">Login Page</a>
-                            <a href="{% url 'logout_view' %}" class="text-rose-600 dark:text-rose-400 font-semibold hover:underline">Log Out</a>
+                        <!-- Logout Button -->
+                        <div class="pt-2 border-t border-slate-200 dark:border-slate-800">
+                            <a href="{% url 'logout_view' %}" 
+                               class="w-full flex items-center space-x-2 p-2 rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition text-left font-bold">
+                                <i data-lucide="log-out" class="w-4 h-4"></i>
+                                <span>Sign Out</span>
+                            </a>
                         </div>
                     </div>
                 </div>
 
-                <!-- Activity Log Link Button -->
+                <!-- Activity Log Link Button (Desktop) -->
                 <a href="{% url 'activity_log' %}" 
-                   class="hidden lg:flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition"
+                   class="hidden xl:flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition"
                    title="View System Activity Log">
                     <i data-lucide="history" class="w-3.5 h-3.5 text-blue-500"></i>
-                    <span>Activity Log</span>
+                    <span>Audit Trail</span>
                 </a>
 
                 <!-- Export CSV (Never need Excel) -->
                 <a href="{% url 'export_inventory_csv' %}" 
-                   class="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200 dark:border-slate-700/80 transition"
+                   class="hidden lg:flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 border border-slate-200 dark:border-slate-700/80 transition"
                    title="Export full inventory to CSV/Excel format">
                     <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-500"></i>
                     <span>Export CSV</span>
@@ -1425,6 +1458,99 @@
         </div>
     </div>
 
+    <!-- USER PROFILE EDIT MODAL -->
+    <div x-show="showProfileModal" x-cloak 
+         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl transition transform my-6 sm:my-8"
+             @click.away="showProfileModal = false">
+            
+            <div class="px-5 sm:px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
+                        <i data-lucide="user-cog" class="w-5 h-5 text-blue-600 dark:text-blue-400"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white">Account Profile Settings</h3>
+                        <p class="text-[11px] text-slate-400">Edit your credentials, personal details and avatar</p>
+                    </div>
+                </div>
+                <button @click="showProfileModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form action="{% url 'update_profile' %}" method="POST" enctype="multipart/form-data" class="p-5 sm:p-6 space-y-4">
+                {% csrf_token %}
+
+                <!-- Avatar and Role preview -->
+                <div class="flex items-center space-x-4 p-3 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
+                    <div class="w-14 h-14 rounded-2xl overflow-hidden bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-lg font-bold shrink-0">
+                        {% if user_perm.avatar_url %}
+                            <img src="{{ user_perm.avatar_url }}" alt="avatar" class="w-full h-full object-cover">
+                        {% else %}
+                            <span>{{ user_perm.display_name|slice:":1"|upper }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="space-y-1">
+                        <div class="font-bold text-slate-900 dark:text-white text-sm">{{ user_perm.email }}</div>
+                        <span class="inline-block px-2.5 py-0.5 rounded text-[10px] font-mono font-bold {% if user_perm.is_super_admin %}bg-rose-500/10 text-rose-500 border border-rose-500/20{% elif user_perm.is_employee %}bg-amber-500/10 text-amber-500 border border-amber-500/20{% else %}bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400{% endif %}">
+                            Role: {{ user_perm.role_label }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">First Name</label>
+                        <input type="text" name="first_name" value="{{ user_perm.first_name }}" placeholder="Your first name"
+                               class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Last Name</label>
+                        <input type="text" name="last_name" value="{{ user_perm.last_name }}" placeholder="Your last name"
+                               class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/50">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Contact Phone</label>
+                        <input type="text" name="phone" value="{{ user_perm.phone }}" placeholder="+880 1XXXXXXXXX"
+                               class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Update Password</label>
+                        <input type="password" name="new_password" placeholder="Leave blank to keep"
+                               class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/50">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Role / Bio Note</label>
+                    <input type="text" name="bio" value="{{ user_perm.bio }}" placeholder="e.g. Senior Inventory & Garment Merchandiser"
+                           class="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-blue-500/50">
+                </div>
+
+                <!-- Avatar Upload -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Change Profile Avatar</label>
+                    <div class="bg-slate-50 dark:bg-slate-950 border border-dashed border-slate-300 dark:border-slate-800 rounded-xl p-3">
+                        <input type="file" name="avatar" accept="image/*" class="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                    <button type="button" @click="showProfileModal = false" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs sm:text-sm font-semibold rounded-xl transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-md shadow-blue-500/25 transition">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- CSRF Helper & Alpine Application Logic -->
     <script>
         function getCookie(name) {
@@ -1451,6 +1577,7 @@
                 showPreviewModal: false,
                 showDeleteModal: false,
                 showScannerModal: false,
+                showProfileModal: false,
                 html5QrCodeScanner: null,
                 
                 editData: {},
@@ -1539,6 +1666,11 @@
                 openDeleteModal(id, code, name) {
                     this.deleteData = { id, code, name };
                     this.showDeleteModal = true;
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                openProfileModal() {
+                    this.showProfileModal = true;
                     this.$nextTick(() => lucide.createIcons());
                 },
 

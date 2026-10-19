@@ -50,6 +50,14 @@ def get_user_role_context(request):
     return {
         'role': role,
         'role_label': profile.get_role_display(),
+        'username': user.username,
+        'email': user.email or user.username,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'display_name': f"{user.first_name} {user.last_name}".strip() or (user.email or user.username),
+        'phone': profile.phone or '',
+        'bio': profile.bio or '',
+        'avatar_url': profile.avatar.url if profile.avatar else '',
         'can_manage_products': is_super_admin,
         'can_adjust_stock': is_super_admin or is_employee,
         'is_super_admin': is_super_admin,
@@ -111,6 +119,10 @@ def logout_view(request):
 
 
 def dashboard(request):
+    # Enforce Login Gate: Modern sites show login first if not authenticated
+    if not request.user.is_authenticated:
+        return redirect('login_view')
+
     query = request.GET.get('q', '').strip()
     category = request.GET.get('category', '').strip()
     status = request.GET.get('status', '').strip()
@@ -400,8 +412,42 @@ def adjust_size_stock(request, pk):
     })
 
 
+@require_POST
+def update_profile(request):
+    if not request.user.is_authenticated:
+        return redirect('login_view')
+
+    user = request.user
+    first_name = request.POST.get('first_name', '').strip()
+    last_name = request.POST.get('last_name', '').strip()
+    phone = request.POST.get('phone', '').strip()
+    bio = request.POST.get('bio', '').strip()
+    new_password = request.POST.get('new_password', '').strip()
+
+    user.first_name = first_name
+    user.last_name = last_name
+    if new_password:
+        user.set_password(new_password)
+    user.save()
+
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    profile.phone = phone
+    profile.bio = bio
+    if 'avatar' in request.FILES:
+        profile.avatar = request.FILES['avatar']
+    profile.save()
+
+    # Re-login user if password was updated
+    if new_password:
+        login(request, user)
+
+    log_activity(request, 'PRODUCT_UPDATED', details=f"User {user.email or user.username} updated their profile settings.")
+    return redirect('dashboard')
+
+
 def export_inventory_csv(request):
-    """Excel / CSV Export replacing manual sheets"""
+    if not request.user.is_authenticated:
+        return redirect('login_view')
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="Mowria_Fashion_Inventory.csv"'
 
@@ -427,6 +473,8 @@ def export_inventory_csv(request):
 
 
 def activity_log_view(request):
+    if not request.user.is_authenticated:
+        return redirect('login_view')
     logs = ActivityLog.objects.all()[:150]
     user_perm = get_user_role_context(request)
     return render(request, 'inventory/activity_log.html', {
