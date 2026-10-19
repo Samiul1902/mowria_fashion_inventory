@@ -34,9 +34,11 @@
     <div class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
         
         <!-- Header Brand -->
-        <div class="text-center space-y-2">
-            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-700 via-blue-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/25 mx-auto">
-                <i data-lucide="shirt" class="w-7 h-7 text-white"></i>
+        <div class="text-center space-y-3">
+            <div class="h-16 flex items-center justify-center mx-auto">
+                <img :src="darkMode ? '{% static 'images/logo/dark1_opt.png' %}' : '{% static 'images/logo/light1_opt.png' %}'" 
+                     alt="Mowria Fashion Logo" 
+                     class="h-14 w-auto object-contain filter drop-shadow-md">
             </div>
             <h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Mowria Fashion</h1>
             <p class="text-xs text-slate-500 dark:text-slate-400">Apparel Stock Management & Valuation Core</p>
