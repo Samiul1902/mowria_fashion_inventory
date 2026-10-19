@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mowria Fashion (MFB) - Apparel Stock Core</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        mfb: {
+                            50: '#ecfdf5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- HTMX CDN -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- Alpine.js CDN -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+        .currency-symbol::before { content: "৳"; font-family: inherit; margin-right: 2px; }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-emerald-500 selection:text-white"
+      x-data="inventoryApp()">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <!-- Brand -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                    <i data-lucide="shirt" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-lg font-bold tracking-tight text-white">Mowria Fashion</h1>
+                        <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">MFB</span>
+                    </div>
+                    <p class="text-xs text-slate-400">Garment Inventory & Valuation Core</p>
+                </div>
+            </div>
+
+            <!-- Header Center: Currency Tag -->
+            <div class="hidden md:flex items-center space-x-2 bg-slate-800/80 border border-slate-700/60 rounded-full px-3 py-1">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-xs text-slate-300 font-medium">Currency: <strong class="text-emerald-400">BDT (৳)</strong></span>
+            </div>
+
+            <!-- Header Actions: View Switcher & Add Button -->
+            <div class="flex items-center space-x-3">
+                <!-- Grid / List Switcher -->
+                <div class="flex items-center bg-slate-800 p-1 rounded-lg border border-slate-700">
+                    <button @click="currentView = 'grid'" 
+                            :class="currentView === 'grid' ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:text-white'"
+                            class="p-1.5 rounded transition flex items-center justify-center" 
+                            title="Grid View">
+                        <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                    </button>
+                    <button @click="currentView = 'list'" 
+                            :class="currentView === 'list' ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:text-white'"
+                            class="p-1.5 rounded transition flex items-center justify-center" 
+                            title="Compact List View">
+                        <i data-lucide="list" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- Add Product Button -->
+                <button @click="openAddModal()" 
+                        class="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-emerald-600/30 transition transform active:scale-95">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Add Product</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- Top KPI Summary Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <!-- 1. Active SKUs -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between hover:border-slate-700 transition">
+                <div class="flex items-center justify-between text-slate-400 mb-2">
+                    <span class="text-xs font-medium">Active SKUs</span>
+                    <i data-lucide="layers" class="w-4 h-4 text-emerald-400"></i>
+                </div>
+                <div class="text-2xl font-bold text-white">{{ kpis.total_active_skus }}</div>
+                <div class="text-[11px] text-slate-500 mt-1">Catalog items</div>
+            </div>
+
+            <!-- 2. Total In-Stock Units -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between hover:border-slate-700 transition">
+                <div class="flex items-center justify-between text-slate-400 mb-2">
+                    <span class="text-xs font-medium">Total In-Stock</span>
+                    <i data-lucide="package" class="w-4 h-4 text-blue-400"></i>
+                </div>
+                <div class="text-2xl font-bold text-white" id="kpi-total-in-stock">{{ kpis.total_in_stock_units }}</div>
+                <div class="text-[11px] text-slate-500 mt-1">Units available</div>
+            </div>
+
+            <!-- 3. Units Sold -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between hover:border-slate-700 transition">
+                <div class="flex items-center justify-between text-slate-400 mb-2">
+                    <span class="text-xs font-medium">Total Sold</span>
+                    <i data-lucide="shopping-bag" class="w-4 h-4 text-purple-400"></i>
+                </div>
+                <div class="text-2xl font-bold text-white">{{ kpis.total_units_sold }}</div>
+                <div class="text-[11px] text-slate-500 mt-1">Recorded sales</div>
+            </div>
+
+            <!-- 4. Stock Valuation (at cost) -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between hover:border-slate-700 transition">
+                <div class="flex items-center justify-between text-slate-400 mb-2">
+                    <span class="text-xs font-medium">Stock Value</span>
+                    <i data-lucide="vault" class="w-4 h-4 text-amber-400"></i>
+                </div>
+                <div class="text-2xl font-bold text-amber-400">৳{{ kpis.total_stock_value|floatformat:0 }}</div>
+                <div class="text-[11px] text-slate-500 mt-1">At wholesale cost</div>
+            </div>
+
+            <!-- 5. Expected Profit -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between hover:border-slate-700 transition">
+                <div class="flex items-center justify-between text-slate-400 mb-2">
+                    <span class="text-xs font-medium">Expected Profit</span>
+                    <i data-lucide="trending-up" class="w-4 h-4 text-emerald-400"></i>
+                </div>
+                <div class="text-2xl font-bold text-emerald-400">৳{{ kpis.total_expected_profit|floatformat:0 }}</div>
+                <div class="text-[11px] text-slate-500 mt-1">From current stock</div>
+            </div>
+
+            <!-- 6. Low Stock Alerts -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between hover:border-slate-700 transition">
+                <div class="flex items-center justify-between text-slate-400 mb-2">
+                    <span class="text-xs font-medium">Low Stock Alerts</span>
+                    <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400"></i>
+                </div>
+                <div class="text-2xl font-bold text-rose-400">{{ kpis.low_stock_count }}</div>
+                <div class="text-[11px] text-slate-500 mt-1">Items &le; 5 units</div>
+            </div>
+        </div>
+
+        <!-- Filter & Search Controls Bar -->
+        <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 space-y-4">
+            <form method="GET" action="{% url 'dashboard' %}" class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3" id="filter-form">
+                
+                <!-- Live Search Box -->
+                <div class="relative flex-1">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
+                    <input type="text" 
+                           name="q" 
+                           value="{{ query }}" 
+                           placeholder="Search SKU code, product name, colour, category..." 
+                           class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-10 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
+                    {% if query %}
+                    <a href="{% url 'dashboard' %}" class="absolute right-3.5 top-2.5 text-slate-500 hover:text-white" title="Clear search">
+                        <i data-lucide="x-circle" class="w-4 h-4"></i>
+                    </a>
+                    {% endif %}
+                </div>
+
+                <input type="hidden" name="category" value="{{ selected_category }}" id="hidden-category">
+
+                <div class="flex items-center gap-2">
+                    <!-- Status Dropdown -->
+                    <select name="status" onchange="this.form.submit()"
+                            class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        <option value="">All Stock Status</option>
+                        <option value="In Stock" {% if selected_status == 'In Stock' %}selected{% endif %}>In Stock (&gt; 5)</option>
+                        <option value="Low Stock" {% if selected_status == 'Low Stock' %}selected{% endif %}>Low Stock (&le; 5)</option>
+                        <option value="Out of Stock" {% if selected_status == 'Out of Stock' %}selected{% endif %}>Out of Stock (0)</option>
+                    </select>
+
+                    <!-- Sorting Dropdown -->
+                    <select name="sort" onchange="this.form.submit()"
+                            class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>Sort: Newest Added</option>
+                        <option value="name_asc" {% if selected_sort == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                        <option value="price_desc" {% if selected_sort == 'price_desc' %}selected{% endif %}>Price (High to Low)</option>
+                        <option value="price_asc" {% if selected_sort == 'price_asc' %}selected{% endif %}>Price (Low to High)</option>
+                        <option value="quantity_desc" {% if selected_sort == 'quantity_desc' %}selected{% endif %}>Stock (Highest)</option>
+                        <option value="quantity_asc" {% if selected_sort == 'quantity_asc' %}selected{% endif %}>Stock (Lowest)</option>
+                        <option value="sold_desc" {% if selected_sort == 'sold_desc' %}selected{% endif %}>Most Units Sold</option>
+                    </select>
+                </div>
+            </form>
+
+            <!-- Horizontal Category Pill Bar -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 pt-1 no-scrollbar">
+                <a href="?{% if query %}q={{ query }}&{% endif %}{% if selected_status %}status={{ selected_status }}&{% endif %}{% if selected_sort %}sort={{ selected_sort }}&{% endif %}"
+                   class="px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition {% if not selected_category %}bg-emerald-600 text-white shadow-md shadow-emerald-600/30{% else %}bg-slate-800 text-slate-300 hover:bg-slate-700{% endif %}">
+                    All Categories
+                </a>
+                {% for cat in categories %}
+                <a href="?category={{ cat.name|urlencode }}{% if query %}&q={{ query }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_sort %}&sort={{ selected_sort }}{% endif %}"
+                   class="px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition flex items-center space-x-1.5 {% if selected_category == cat.name %}bg-emerald-600 text-white shadow-md shadow-emerald-600/30{% else %}bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200{% endif %}">
+                    <span>{{ cat.name }}</span>
+                    <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-900/60 {% if selected_category == cat.name %}text-white{% else %}text-slate-400{% endif %}">
+                        {{ cat.count }}
+                    </span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- PRODUCT VIEWS SECTION -->
+        {% if products %}
+            
+            <!-- 1. GRID CARDS VIEW -->
+            <div x-show="currentView === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for product in products %}
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-slate-700 transition flex flex-col justify-between shadow-xl"
+                     id="product-card-{{ product.id }}"
+                     data-product-id="{{ product.id }}">
+                    
+                    <!-- Top Product Photo & Badges -->
+                    <div class="relative bg-slate-950 aspect-[4/3] flex items-center justify-center overflow-hidden group">
+                        {% if product.photo %}
+                            <img src="{{ product.photo.url }}" 
+                                 alt="{{ product.name }}" 
+                                 class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        {% else %}
+                            <div class="flex flex-col items-center justify-center text-slate-700">
+                                <i data-lucide="shirt" class="w-16 h-16 stroke-1"></i>
+                                <span class="text-xs text-slate-600 mt-2 font-mono">No Image Uploaded</span>
+                            </div>
+                        {% endif %}
+
+                        <!-- Floating Badges -->
+                        <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                            <span class="px-2.5 py-1 rounded-md text-xs font-mono font-bold tracking-wider bg-slate-900/90 text-white border border-slate-700 shadow-md">
+                                {{ product.code }}
+                            </span>
+                            <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-slate-800/90 text-slate-300 border border-slate-700">
+                                {{ product.category }}
+                            </span>
+                        </div>
+
+                        <!-- Status Badge -->
+                        <div class="absolute top-3 right-3" id="badge-status-{{ product.id }}">
+                            {% if product.stock_status == 'In Stock' %}
+                                <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/90 text-white shadow-md flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white"></span> In Stock
+                                </span>
+                            {% elif product.stock_status == 'Low Stock' %}
+                                <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-amber-500/90 text-slate-950 shadow-md flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-950"></span> Low Stock
+                                </span>
+                            {% else %}
+                                <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-rose-600/90 text-white shadow-md flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white"></span> Out of Stock
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Quick Preview Icon overlay -->
+                        <button @click="openPreviewModal({
+                                    id: '{{ product.id }}',
+                                    code: '{{ product.code }}',
+                                    name: '{{ product.name|escapejs }}',
+                                    category: '{{ product.category|escapejs }}',
+                                    colour: '{{ product.colour|default:''|escapejs }}',
+                                    unit_cost: '{{ product.unit_cost }}',
+                                    price: '{{ product.price }}',
+                                    photo_url: '{% if product.photo %}{{ product.photo.url }}{% endif %}',
+                                    size_s: {{ product.size_s }},
+                                    size_m: {{ product.size_m }},
+                                    size_l: {{ product.size_l }},
+                                    size_xl: {{ product.size_xl }},
+                                    size_xxl: {{ product.size_xxl }},
+                                    total_qty: {{ product.total_quantity }},
+                                    stock_value: '{{ product.stock_value }}',
+                                    potential_rev: '{{ product.potential_revenue }}',
+                                    profit: '{{ product.expected_profit }}',
+                                    margin: '{{ product.profit_margin|floatformat:1 }}',
+                                    sold: {{ product.sold_quantity }}
+                                })"
+                                class="absolute bottom-3 right-3 p-2 bg-slate-900/80 hover:bg-emerald-600 text-white rounded-lg opacity-0 group-hover:opacity-100 transition shadow-lg">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <!-- Product Body Content -->
+                    <div class="p-5 space-y-4 flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-2">
+                                <h2 class="text-base font-bold text-white hover:text-emerald-400 transition">{{ product.name }}</h2>
+                                {% if product.colour %}
+                                <span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/60 whitespace-nowrap">
+                                    {{ product.colour }}
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Prices & Profit Margin -->
+                            <div class="flex items-baseline justify-between mt-3 pt-3 border-t border-slate-800/80">
+                                <div>
+                                    <div class="text-xs text-slate-400">Retail Price</div>
+                                    <div class="text-xl font-bold text-white">৳{{ product.price }}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs text-slate-400">Cost: <span class="text-slate-300">৳{{ product.unit_cost }}</span></div>
+                                    <div class="text-xs font-semibold text-emerald-400 mt-0.5">
+                                        +{{ product.profit_margin|floatformat:1 }}% Margin
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Size Matrix Stepper Controls (S - XXL) -->
+                        <div class="bg-slate-950/70 p-3 rounded-xl border border-slate-800/80 space-y-2">
+                            <div class="flex items-center justify-between text-xs text-slate-400">
+                                <span class="font-medium text-slate-300">Size Distribution</span>
+                                <span>Total: <strong class="text-white text-sm" id="card-total-{{ product.id }}">{{ product.total_quantity }}</strong></span>
+                            </div>
+                            <div class="grid grid-cols-5 gap-1.5 text-center">
+                                <!-- Size S -->
+                                <div class="bg-slate-900 border border-slate-800 rounded-lg p-1.5 flex flex-col items-center">
+                                    <span class="text-[10px] font-bold text-slate-400">S</span>
+                                    <span class="text-sm font-bold text-white my-1" id="stock-val-{{ product.id }}-s">{{ product.size_s }}</span>
+                                    <div class="flex gap-1 w-full justify-center">
+                                        <button @click="adjustSize({{ product.id }}, 's', -1)" class="w-5 h-5 bg-slate-800 hover:bg-rose-950 hover:text-rose-400 rounded text-xs flex items-center justify-center text-slate-400 font-bold transition">-</button>
+                                        <button @click="adjustSize({{ product.id }}, 's', 1)" class="w-5 h-5 bg-slate-800 hover:bg-emerald-950 hover:text-emerald-400 rounded text-xs flex items-center justify-center text-slate-400 font-bold transition">+</button>
+                                    </div>
+                                </div>
+
+                                <!-- Size M -->
+                                <div class="bg-slate-900 border border-slate-800 rounded-lg p-1.5 flex flex-col items-center">
+                                    <span class="text-[10px] font-bold text-slate-400">M</span>
+                                    <span class="text-sm font-bold text-white my-1" id="stock-val-{{ product.id }}-m">{{ product.size_m }}</span>
+                                    <div class="flex gap-1 w-full justify-center">
+                                        <button @click="adjustSize({{ product.id }}, 'm', -1)" class="w-5 h-5 bg-slate-800 hover:bg-rose-950 hover:text-rose-400 rounded text-xs flex items-center justify-center text-slate-400 font-bold transition">-</button>
+                                        <button @click="adjustSize({{ product.id }}, 'm', 1)" class="w-5 h-5 bg-slate-800 hover:bg-emerald-950 hover:text-emerald-400 rounded text-xs flex items-center justify-center text-slate-400 font-bold transition">+</button>
+                                    </div>
+                                </div>
+
+                                <!-- Size L -->
+                                <div class="bg-slate-900 border border-slate-800 rounded-lg p-1.5 flex flex-col items-center">
+                                    <span class="text-[10px] font-bold text-slate-400">L</span>
+                                    <span class="text-sm font-bold text-white my-1" id="stock-val-{{ product.id }}-l">{{ product.size_l }}</span>
+                                    <div class="flex gap-1 w-full justify-center">
+                                        <button @click="adjustSize({{ product.id }}, 'l', -1)" class="w-5 h-5 bg-slate-800 hover:bg-rose-950 hover:text-rose-400 rounded text-xs flex items-center justify-center text-slate-400 font-bold transition">-</button>
+                                        <button @click="adjustSize({{ product.id }}, 'l', 1)" class="w-5 h-5 bg-slate-800 hover:bg-emerald-950 hover:text-emerald-400 rounded text-xs flex items-center justify-center text-slate-400 font-bold transition">+</button>
+                                    </div>
+                                </div>
+
+                                <!-- Size XL -->
+                                <div class="bg-slate-900 border border-slate-800 rounded-lg p-1.5 flex flex-col items-center">
+                                    <span class="text-[10px] font-bold text-slate-400">XL</span>
+                                    <span class="text-sm font-bold text-white my-1" id="stock-val-{{ product.id }}-xl">{{ product.size_xl }}</span>
+                                    <div class="flex gap-1 w-full justify-center">
+                                        <button @click="adjustSize({{ product.id }}, 'xl', -1)" class="w-5 h-5 bg-slate-800 hover:bg-rose-950 hover:text-rose-400 rounded text-xs flex items-center justify-center text-slate-400 font-bold transition">-</button>
+                                        <button @click="adjustSize({{ product.id }}, 'xl', 1)" class="w-5 h-5 bg-slate-800 hover:bg-emerald-950 hover:text-emerald-400 rounded text-xs flex items-center justify-center text-slate-400 font-bold transition">+</button>
+                                    </div>
+                                </div>
+
+                                <!-- Size XXL -->
+                                <div class="bg-slate-900 border border-slate-800 rounded-lg p-1.5 flex flex-col items-center">
+                                    <span class="text-[10px] font-bold text-slate-400">2XL</span>
+                                    <span class="text-sm font-bold text-white my-1" id="stock-val-{{ product.id }}-xxl">{{ product.size_xxl }}</span>
+                                    <div class="flex gap-1 w-full justify-center">
+                                        <button @click="adjustSize({{ product.id }}, 'xxl', -1)" class="w-5 h-5 bg-slate-800 hover:bg-rose-950 hover:text-rose-400 rounded text-xs flex items-center justify-center text-slate-400 font-bold transition">-</button>
+                                        <button @click="adjustSize({{ product.id }}, 'xxl', 1)" class="w-5 h-5 bg-slate-800 hover:bg-emerald-950 hover:text-emerald-400 rounded text-xs flex items-center justify-center text-slate-400 font-bold transition">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Footer Financials & Actions -->
+                        <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-xs">
+                            <div class="text-slate-400">
+                                Stock Val: <span class="text-amber-400 font-semibold" id="card-val-{{ product.id }}">৳{{ product.stock_value|floatformat:0 }}</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <!-- Preview button -->
+                                <button @click="openPreviewModal({
+                                            id: '{{ product.id }}',
+                                            code: '{{ product.code }}',
+                                            name: '{{ product.name|escapejs }}',
+                                            category: '{{ product.category|escapejs }}',
+                                            colour: '{{ product.colour|default:''|escapejs }}',
+                                            unit_cost: '{{ product.unit_cost }}',
+                                            price: '{{ product.price }}',
+                                            photo_url: '{% if product.photo %}{{ product.photo.url }}{% endif %}',
+                                            size_s: {{ product.size_s }},
+                                            size_m: {{ product.size_m }},
+                                            size_l: {{ product.size_l }},
+                                            size_xl: {{ product.size_xl }},
+                                            size_xxl: {{ product.size_xxl }},
+                                            total_qty: {{ product.total_quantity }},
+                                            stock_value: '{{ product.stock_value }}',
+                                            potential_rev: '{{ product.potential_revenue }}',
+                                            profit: '{{ product.expected_profit }}',
+                                            margin: '{{ product.profit_margin|floatformat:1 }}',
+                                            sold: {{ product.sold_quantity }}
+                                        })" 
+                                        class="p-1.5 text-slate-400 hover:text-white rounded hover:bg-slate-800" title="Full Preview">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                </button>
+                                
+                                <!-- Edit button -->
+                                <button @click="openEditModal({
+                                            id: '{{ product.id }}',
+                                            code: '{{ product.code }}',
+                                            name: '{{ product.name|escapejs }}',
+                                            category: '{{ product.category|escapejs }}',
+                                            colour: '{{ product.colour|default:''|escapejs }}',
+                                            unit_cost: '{{ product.unit_cost }}',
+                                            price: '{{ product.price }}',
+                                            size_s: {{ product.size_s }},
+                                            size_m: {{ product.size_m }},
+                                            size_l: {{ product.size_l }},
+                                            size_xl: {{ product.size_xl }},
+                                            size_xxl: {{ product.size_xxl }}
+                                        })" 
+                                        class="p-1.5 text-slate-400 hover:text-emerald-400 rounded hover:bg-slate-800" title="Edit Product">
+                                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                                </button>
+
+                                <!-- Delete button -->
+                                <button @click="openDeleteModal('{{ product.id }}', '{{ product.code }}', '{{ product.name|escapejs }}')" 
+                                        class="p-1.5 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-800" title="Delete Product">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- 2. COMPACT LIST VIEW -->
+            <div x-show="currentView === 'list'" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                        <thead class="bg-slate-950/80 text-xs uppercase font-semibold text-slate-400 tracking-wider border-b border-slate-800">
+                            <tr>
+                                <th class="px-4 py-3.5">Garment</th>
+                                <th class="px-4 py-3.5">SKU / Name</th>
+                                <th class="px-4 py-3.5">Category</th>
+                                <th class="px-4 py-3.5">Cost & Price</th>
+                                <th class="px-4 py-3.5 text-center">Size Distribution (S-2XL)</th>
+                                <th class="px-4 py-3.5 text-center">Stock</th>
+                                <th class="px-4 py-3.5 text-right">Valuation (৳)</th>
+                                <th class="px-4 py-3.5 text-center">Margin %</th>
+                                <th class="px-4 py-3.5 text-center">Status</th>
+                                <th class="px-4 py-3.5 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800">
+                            {% for product in products %}
+                            <tr class="hover:bg-slate-800/40 transition">
+                                <!-- Photo Thumbnail -->
+                                <td class="px-4 py-3">
+                                    <div class="w-12 h-12 rounded-lg bg-slate-950 border border-slate-800 overflow-hidden flex items-center justify-center">
+                                        {% if product.photo %}
+                                            <img src="{{ product.photo.url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                                        {% else %}
+                                            <i data-lucide="shirt" class="w-6 h-6 text-slate-700"></i>
+                                        {% endif %}
+                                    </div>
+                                </td>
+
+                                <!-- SKU & Name -->
+                                <td class="px-4 py-3">
+                                    <div class="font-mono font-bold text-emerald-400 text-xs">{{ product.code }}</div>
+                                    <div class="font-medium text-white max-w-[200px] truncate" title="{{ product.name }}">{{ product.name }}</div>
+                                    {% if product.colour %}
+                                    <div class="text-[11px] text-slate-400">{{ product.colour }}</div>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Category -->
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 text-xs border border-slate-700">
+                                        {{ product.category }}
+                                    </span>
+                                </td>
+
+                                <!-- Cost & Price -->
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <div class="text-white font-semibold">৳{{ product.price }}</div>
+                                    <div class="text-[11px] text-slate-500">Cost: ৳{{ product.unit_cost }}</div>
+                                </td>
+
+                                <!-- Size Matrix Inline -->
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center justify-center space-x-1.5 text-xs font-mono">
+                                        <span class="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300">S:<b id="list-s-{{ product.id }}">{{ product.size_s }}</b></span>
+                                        <span class="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300">M:<b id="list-m-{{ product.id }}">{{ product.size_m }}</b></span>
+                                        <span class="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300">L:<b id="list-l-{{ product.id }}">{{ product.size_l }}</b></span>
+                                        <span class="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300">XL:<b id="list-xl-{{ product.id }}">{{ product.size_xl }}</b></span>
+                                        <span class="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300">2X:<b id="list-xxl-{{ product.id }}">{{ product.size_xxl }}</b></span>
+                                    </div>
+                                </td>
+
+                                <!-- Total Stock -->
+                                <td class="px-4 py-3 text-center">
+                                    <div class="text-white font-bold" id="list-total-{{ product.id }}">{{ product.total_quantity }}</div>
+                                    <div class="text-[10px] text-slate-500">Sold: {{ product.sold_quantity }}</div>
+                                </td>
+
+                                <!-- Valuation -->
+                                <td class="px-4 py-3 text-right font-semibold text-amber-400 whitespace-nowrap" id="list-val-{{ product.id }}">
+                                    ৳{{ product.stock_value|floatformat:0 }}
+                                </td>
+
+                                <!-- Margin % -->
+                                <td class="px-4 py-3 text-center whitespace-nowrap">
+                                    <span class="text-emerald-400 font-medium text-xs">
+                                        {{ product.profit_margin|floatformat:1 }}%
+                                    </span>
+                                </td>
+
+                                <!-- Status Badge -->
+                                <td class="px-4 py-3 text-center whitespace-nowrap" id="list-badge-{{ product.id }}">
+                                    {% if product.stock_status == 'In Stock' %}
+                                        <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                            In Stock
+                                        </span>
+                                    {% elif product.stock_status == 'Low Stock' %}
+                                        <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                            Low Stock
+                                        </span>
+                                    {% else %}
+                                        <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                                            Out of Stock
+                                        </span>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Action buttons -->
+                                <td class="px-4 py-3 text-right whitespace-nowrap">
+                                    <div class="flex items-center justify-end space-x-1">
+                                        <button @click="openPreviewModal({
+                                                    id: '{{ product.id }}',
+                                                    code: '{{ product.code }}',
+                                                    name: '{{ product.name|escapejs }}',
+                                                    category: '{{ product.category|escapejs }}',
+                                                    colour: '{{ product.colour|default:''|escapejs }}',
+                                                    unit_cost: '{{ product.unit_cost }}',
+                                                    price: '{{ product.price }}',
+                                                    photo_url: '{% if product.photo %}{{ product.photo.url }}{% endif %}',
+                                                    size_s: {{ product.size_s }},
+                                                    size_m: {{ product.size_m }},
+                                                    size_l: {{ product.size_l }},
+                                                    size_xl: {{ product.size_xl }},
+                                                    size_xxl: {{ product.size_xxl }},
+                                                    total_qty: {{ product.total_quantity }},
+                                                    stock_value: '{{ product.stock_value }}',
+                                                    potential_rev: '{{ product.potential_revenue }}',
+                                                    profit: '{{ product.expected_profit }}',
+                                                    margin: '{{ product.profit_margin|floatformat:1 }}',
+                                                    sold: {{ product.sold_quantity }}
+                                                })" 
+                                                class="p-1.5 text-slate-400 hover:text-white rounded hover:bg-slate-800" title="Preview">
+                                            <i data-lucide="eye" class="w-4 h-4"></i>
+                                        </button>
+                                        <button @click="openEditModal({
+                                                    id: '{{ product.id }}',
+                                                    code: '{{ product.code }}',
+                                                    name: '{{ product.name|escapejs }}',
+                                                    category: '{{ product.category|escapejs }}',
+                                                    colour: '{{ product.colour|default:''|escapejs }}',
+                                                    unit_cost: '{{ product.unit_cost }}',
+                                                    price: '{{ product.price }}',
+                                                    size_s: {{ product.size_s }},
+                                                    size_m: {{ product.size_m }},
+                                                    size_l: {{ product.size_l }},
+                                                    size_xl: {{ product.size_xl }},
+                                                    size_xxl: {{ product.size_xxl }}
+                                                })" 
+                                                class="p-1.5 text-slate-400 hover:text-emerald-400 rounded hover:bg-slate-800" title="Edit">
+                                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                                        </button>
+                                        <button @click="openDeleteModal('{{ product.id }}', '{{ product.code }}', '{{ product.name|escapejs }}')" 
+                                                class="p-1.5 text-slate-400 hover:text-rose-400 rounded hover:bg-slate-800" title="Delete">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        {% else %}
+            <!-- Empty State -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center max-w-xl mx-auto space-y-4">
+                <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+                    <i data-lucide="package-search" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-lg font-bold text-white">No Apparel Products Found</h3>
+                <p class="text-sm text-slate-400">
+                    {% if query or selected_category or selected_status %}
+                        No items match your selected filters. Try clearing search or resetting filters.
+                    {% else %}
+                        Your catalog is currently empty. Start by adding your first garment SKU to Mowria Fashion inventory.
+                    {% endif %}
+                </p>
+                <div class="pt-2">
+                    {% if query or selected_category or selected_status %}
+                        <a href="{% url 'dashboard' %}" class="inline-flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                            <span>Reset Filters</span>
+                        </a>
+                    {% else %}
+                        <button @click="openAddModal()" class="inline-flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-emerald-600/30 transition">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            <span>Add First Product</span>
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+    </main>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- 1. ADD PRODUCT MODAL -->
+    <div x-show="showAddModal" x-cloak 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl transition transform my-8"
+             @click.away="showAddModal = false">
+            
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-emerald-400"></i>
+                    <h3 class="text-base font-bold text-white">Add New Apparel SKU</h3>
+                </div>
+                <button @click="showAddModal = false" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form action="{% url 'product_create' %}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Product Code (SKU) *</label>
+                        {{ product_form.code }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Product Name *</label>
+                        {{ product_form.name }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Category</label>
+                        {{ product_form.category }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Colour</label>
+                        {{ product_form.colour }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Unit Cost (৳ Wholesale)</label>
+                        {{ product_form.unit_cost }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Retail Price (৳)</label>
+                        {{ product_form.price }}
+                    </div>
+                </div>
+
+                <!-- Product Photo -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Garment Photo</label>
+                    <div class="bg-slate-950 border border-dashed border-slate-800 rounded-lg p-3">
+                        {{ product_form.photo }}
+                    </div>
+                </div>
+
+                <!-- Initial Size Stock Matrix -->
+                <div class="bg-slate-950/80 p-4 rounded-xl border border-slate-800/80">
+                    <label class="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">Initial Size Quantities</label>
+                    <div class="grid grid-cols-5 gap-2 text-center">
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 block mb-1">S</span>
+                            {{ product_form.size_s }}
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 block mb-1">M</span>
+                            {{ product_form.size_m }}
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 block mb-1">L</span>
+                            {{ product_form.size_l }}
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 block mb-1">XL</span>
+                            {{ product_form.size_xl }}
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 block mb-1">2XL</span>
+                            {{ product_form.size_xxl }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-800">
+                    <button type="button" @click="showAddModal = false" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold rounded-lg transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-lg shadow-lg shadow-emerald-600/30 transition">
+                        Save Product
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- 2. EDIT PRODUCT MODAL -->
+    <div x-show="showEditModal" x-cloak 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl transition transform my-8"
+             @click.away="showEditModal = false">
+            
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="edit-3" class="w-5 h-5 text-emerald-400"></i>
+                    <h3 class="text-base font-bold text-white">Edit Apparel SKU: <span class="font-mono text-emerald-400" x-text="editData.code"></span></h3>
+                </div>
+                <button @click="showEditModal = false" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form :action="'/product/' + editData.id + '/edit/'" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Product Code (SKU) *</label>
+                        <input type="text" name="code" x-model="editData.code" required class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono uppercase text-sm focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Product Name *</label>
+                        <input type="text" name="name" x-model="editData.name" required class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Category</label>
+                        <select name="category" x-model="editData.category" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500">
+                            {% for c in product_form.fields.category.choices %}
+                            <option value="{{ c.0 }}">{{ c.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Colour</label>
+                        <input type="text" name="colour" x-model="editData.colour" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Unit Cost (৳ Wholesale)</label>
+                        <input type="number" step="0.01" min="0" name="unit_cost" x-model="editData.unit_cost" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Retail Price (৳)</label>
+                        <input type="number" step="0.01" min="0" name="price" x-model="editData.price" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white text-sm focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                </div>
+
+                <!-- Replace Garment Photo -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Replace Garment Photo (Leave empty to keep existing)</label>
+                    <div class="bg-slate-950 border border-dashed border-slate-800 rounded-lg p-3">
+                        <input type="file" name="photo" accept="image/*" class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500 cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- Size Stock Matrix -->
+                <div class="bg-slate-950/80 p-4 rounded-xl border border-slate-800/80">
+                    <label class="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">Size Quantities Matrix</label>
+                    <div class="grid grid-cols-5 gap-2 text-center">
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 block mb-1">S</span>
+                            <input type="number" min="0" name="size_s" x-model="editData.size_s" class="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-center text-white text-sm font-semibold">
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 block mb-1">M</span>
+                            <input type="number" min="0" name="size_m" x-model="editData.size_m" class="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-center text-white text-sm font-semibold">
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 block mb-1">L</span>
+                            <input type="number" min="0" name="size_l" x-model="editData.size_l" class="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-center text-white text-sm font-semibold">
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 block mb-1">XL</span>
+                            <input type="number" min="0" name="size_xl" x-model="editData.size_xl" class="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-center text-white text-sm font-semibold">
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 block mb-1">2XL</span>
+                            <input type="number" min="0" name="size_xxl" x-model="editData.size_xxl" class="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-center text-white text-sm font-semibold">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-800">
+                    <button type="button" @click="showEditModal = false" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold rounded-lg transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-lg shadow-lg shadow-emerald-600/30 transition">
+                        Update Product
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- 3. PRODUCT PREVIEW MODAL -->
+    <div x-show="showPreviewModal" x-cloak 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl transition transform my-8"
+             @click.away="showPreviewModal = false">
+            
+            <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <span class="font-mono text-xs uppercase px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" x-text="previewData.code"></span>
+                    <h3 class="text-base font-bold text-white" x-text="previewData.name"></h3>
+                </div>
+                <button @click="showPreviewModal = false" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Large Garment Image -->
+                <div class="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden flex items-center justify-center aspect-square">
+                    <template x-if="previewData.photo_url">
+                        <img :src="previewData.photo_url" :alt="previewData.name" class="w-full h-full object-cover">
+                    </template>
+                    <template x-if="!previewData.photo_url">
+                        <div class="flex flex-col items-center justify-center text-slate-700">
+                            <i data-lucide="shirt" class="w-20 h-20 stroke-1"></i>
+                            <span class="text-xs text-slate-600 mt-2 font-mono">No Image Uploaded</span>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Financial & Size Breakdown -->
+                <div class="space-y-5 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-slate-400">Category: <strong class="text-slate-200" x-text="previewData.category"></strong></span>
+                            <template x-if="previewData.colour">
+                                <span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300" x-text="previewData.colour"></span>
+                            </template>
+                        </div>
+
+                        <!-- Pricing & Margin Breakdown -->
+                        <div class="grid grid-cols-2 gap-3 mt-4">
+                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                                <div class="text-[11px] text-slate-400">Retail Price</div>
+                                <div class="text-lg font-bold text-white">৳<span x-text="previewData.price"></span></div>
+                            </div>
+                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                                <div class="text-[11px] text-slate-400">Wholesale Cost</div>
+                                <div class="text-lg font-bold text-slate-300">৳<span x-text="previewData.unit_cost"></span></div>
+                            </div>
+                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                                <div class="text-[11px] text-slate-400">Stock Valuation</div>
+                                <div class="text-lg font-bold text-amber-400">৳<span x-text="previewData.stock_value"></span></div>
+                            </div>
+                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                                <div class="text-[11px] text-slate-400">Expected Profit</div>
+                                <div class="text-lg font-bold text-emerald-400">৳<span x-text="previewData.profit"></span></div>
+                            </div>
+                        </div>
+
+                        <!-- Margin & Sold info -->
+                        <div class="flex items-center justify-between text-xs text-slate-400 mt-3 px-1">
+                            <span>Profit Margin: <strong class="text-emerald-400" x-text="previewData.margin + '%'"></strong></span>
+                            <span>Historical Units Sold: <strong class="text-purple-400" x-text="previewData.sold"></strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Size Breakdown Table -->
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                        <div class="text-xs font-semibold text-slate-300 mb-2">Available Size Breakdown</div>
+                        <div class="grid grid-cols-5 gap-1.5 text-center">
+                            <div class="p-2 rounded bg-slate-900 border border-slate-800">
+                                <div class="text-[10px] text-slate-400 font-bold">S</div>
+                                <div class="text-base font-bold text-white mt-1" x-text="previewData.size_s"></div>
+                            </div>
+                            <div class="p-2 rounded bg-slate-900 border border-slate-800">
+                                <div class="text-[10px] text-slate-400 font-bold">M</div>
+                                <div class="text-base font-bold text-white mt-1" x-text="previewData.size_m"></div>
+                            </div>
+                            <div class="p-2 rounded bg-slate-900 border border-slate-800">
+                                <div class="text-[10px] text-slate-400 font-bold">L</div>
+                                <div class="text-base font-bold text-white mt-1" x-text="previewData.size_l"></div>
+                            </div>
+                            <div class="p-2 rounded bg-slate-900 border border-slate-800">
+                                <div class="text-[10px] text-slate-400 font-bold">XL</div>
+                                <div class="text-base font-bold text-white mt-1" x-text="previewData.size_xl"></div>
+                            </div>
+                            <div class="p-2 rounded bg-slate-900 border border-slate-800">
+                                <div class="text-[10px] text-slate-400 font-bold">2XL</div>
+                                <div class="text-base font-bold text-white mt-1" x-text="previewData.size_xxl"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 text-right">
+                        <button @click="showPreviewModal = false" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold rounded-lg transition">
+                            Close Preview
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 4. DELETE CONFIRMATION MODAL -->
+    <div x-show="showDeleteModal" x-cloak 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl transition transform"
+             @click.away="showDeleteModal = false">
+            
+            <div class="p-6 text-center space-y-4">
+                <div class="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 border border-rose-500/20 flex items-center justify-center mx-auto">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-white">Delete Product Confirmation</h3>
+                    <p class="text-xs text-slate-400 mt-1">
+                        Are you sure you want to permanently delete SKU <span class="font-mono text-emerald-400 font-bold" x-text="deleteData.code"></span> (<span x-text="deleteData.name"></span>)?
+                    </p>
+                    <p class="text-[11px] text-rose-400/80 mt-2">This action removes all stock movements and media files associated with this item.</p>
+                </div>
+
+                <form :action="'/product/' + deleteData.id + '/delete/'" method="POST" class="flex items-center justify-center space-x-3 pt-3">
+                    {% csrf_token %}
+                    <button type="button" @click="showDeleteModal = false" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-lg shadow-lg shadow-rose-600/30 transition">
+                        Yes, Delete Product
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSRF Helper & Alpine Application Logic -->
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function inventoryApp() {
+            return {
+                currentView: 'grid',
+                showAddModal: false,
+                showEditModal: false,
+                showPreviewModal: false,
+                showDeleteModal: false,
+                
+                editData: {},
+                previewData: {},
+                deleteData: {},
+
+                openAddModal() {
+                    this.showAddModal = true;
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                openEditModal(data) {
+                    this.editData = { ...data };
+                    this.showEditModal = true;
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                openPreviewModal(data) {
+                    this.previewData = { ...data };
+                    this.showPreviewModal = true;
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                openDeleteModal(id, code, name) {
+                    this.deleteData = { id, code, name };
+                    this.showDeleteModal = true;
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                async adjustSize(productId, size, delta) {
+                    const csrftoken = getCookie('csrftoken');
+                    try {
+                        const response = await fetch(`/product/${productId}/adjust-size/`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrftoken
+                            },
+                            body: JSON.stringify({ size, delta })
+                        });
+
+                        const res = await response.json();
+                        if (response.ok && res.success) {
+                            // Update Card View elements
+                            const cardValEl = document.getElementById(`stock-val-${productId}-${size}`);
+                            if (cardValEl) cardValEl.innerText = res.new_size_qty;
+
+                            const cardTotalEl = document.getElementById(`card-total-${productId}`);
+                            if (cardTotalEl) cardTotalEl.innerText = res.total_quantity;
+
+                            const cardStockVal = document.getElementById(`card-val-${productId}`);
+                            if (cardStockVal) cardStockVal.innerText = '৳' + Math.round(res.stock_value);
+
+                            // Update Badge Status
+                            const badgeEl = document.getElementById(`badge-status-${productId}`);
+                            if (badgeEl) {
+                                if (res.stock_status === 'In Stock') {
+                                    badgeEl.innerHTML = `<span class="px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/90 text-white shadow-md flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-white"></span> In Stock</span>`;
+                                } else if (res.stock_status === 'Low Stock') {
+                                    badgeEl.innerHTML = `<span class="px-2.5 py-1 rounded-md text-xs font-bold bg-amber-500/90 text-slate-950 shadow-md flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-slate-950"></span> Low Stock</span>`;
+                                } else {
+                                    badgeEl.innerHTML = `<span class="px-2.5 py-1 rounded-md text-xs font-bold bg-rose-600/90 text-white shadow-md flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-white"></span> Out of Stock</span>`;
+                                }
+                            }
+
+                            // Update List View elements if present
+                            const listSizeEl = document.getElementById(`list-${size}-${productId}`);
+                            if (listSizeEl) listSizeEl.innerText = res.new_size_qty;
+
+                            const listTotalEl = document.getElementById(`list-total-${productId}`);
+                            if (listTotalEl) listTotalEl.innerText = res.total_quantity;
+
+                            const listValEl = document.getElementById(`list-val-${productId}`);
+                            if (listValEl) listValEl.innerText = '৳' + Math.round(res.stock_value);
+
+                            // Update Preview data if open for this product
+                            if (this.previewData && this.previewData.id == productId) {
+                                this.previewData['size_' + size] = res.new_size_qty;
+                                this.previewData.total_qty = res.total_quantity;
+                                this.previewData.stock_value = res.stock_value;
+                                this.previewData.expected_profit = res.expected_profit;
+                            }
+                        } else {
+                            alert(res.error || 'Failed to update stock');
+                        }
+                    } catch (err) {
+                        console.error('Error updating size stock:', err);
+                    }
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
